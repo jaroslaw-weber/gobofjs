@@ -2,6 +2,10 @@
 
 6dof tracking inside the browser!
 
+go to:
+
+https://jaroslaw-weber.github.io/gobofjs/
+
 # how to use
 
 - set fps (default to 60)
