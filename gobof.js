@@ -3,7 +3,9 @@ var FPS = 60;
 
 var ws = undefined;
 var processedFrames = 0;
+
 var fpsCounter = 0
+
 var start = Date.now();
 var focalLength = 0.4;
 targetWidth = 5;
@@ -28,13 +30,14 @@ function startTracking() {
     cv.cvtColor(roi, hsvRoi, cv.COLOR_RGBA2RGB);
     cv.cvtColor(hsvRoi, hsvRoi, cv.COLOR_RGB2HSV);
     let mask = new cv.Mat();
+let ksize = new cv.Size(59, 59);
 
-    let sensitivity = 20
+    let sensitivity =40;
     //lower_green = np.array([60 - sensitivity, 30, 30])
     //upper_green = np.array([80 + sensitivity, 255, 255])
 
-    let lowScalar = new cv.Scalar(60 - sensitivity, 30, 30);
-    let highScalar = new cv.Scalar(80 + sensitivity, 255, 255);
+    let lowScalar = new cv.Scalar(60-sensitivity, 80, 50);
+    let highScalar = new cv.Scalar(60+sensitivity, 255, 255);
     let low = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), lowScalar);
     let high = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), highScalar);
     cv.inRange(hsvRoi, low, high, mask);
@@ -45,7 +48,7 @@ function startTracking() {
     cv.normalize(roiHist, roiHist, 0, 255, cv.NORM_MINMAX);
 
     // delete useless mats.
-    roi.delete(); hsvRoi.delete(); mask.delete(); low.delete(); high.delete(); hsvRoiVec.delete();
+//    roi.delete(); hsvRoi.delete(); mask.delete(); low.delete(); high.delete(); hsvRoiVec.delete();
 
     // Setup the termination criteria, either 10 iteration or move by atleast 1 pt
     let termCrit = new cv.TermCriteria(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 1);
@@ -56,6 +59,8 @@ function startTracking() {
     let dst = new cv.Mat();
     let trackBox = null;
 
+let contours = new cv.MatVector();
+let hierarchy = new cv.Mat();
     function processVideo() {
         try {
             if (!streaming) {
@@ -67,15 +72,16 @@ function startTracking() {
 
             // start processing.
             cap.read(frame);
+            cv.GaussianBlur(frame,frame, ksize, 0, 0, cv.BORDER_DEFAULT);
             cv.cvtColor(frame, hsv, cv.COLOR_RGBA2RGB);
             cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
             cv.calcBackProject(hsvVec, [0], roiHist, dst, [0, 180], 1);
 
             // apply camshift to get the new location
-            [trackBox, trackWindow] = cv.CamShift(dst, trackWindow, termCrit);
+            //[trackBox, trackWindow] = cv.CamShift(dst, trackWindow, termCrit);
 
             // Draw it on image
-            let pts = cv.rotatedRectPoints(trackBox);
+            /*let pts = cv.rotatedRectPoints(trackBox);
             if (pts.length > 0) {
                 cv.line(frame, pts[0], pts[1], [255, 0, 0, 255], 3);
                 cv.line(frame, pts[1], pts[2], [255, 0, 0, 255], 3);
@@ -91,7 +97,23 @@ function startTracking() {
 
                 }
             }
-            cv.imshow('canvasOutput', frame);
+*/
+//mask=hsv;
+// You can try more different parameters
+//cv.inRange(hsv,low,high,mask);
+
+//cv.inRange(hsv, low, high, hsv);
+
+cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+// draw contours with random Scalar
+///console.log("conoturs;"+contours.size())
+for (let i = 0; i < contours.size(); ++i) {
+    //let ccolor = new cv.Scalar(Math.round(0.3 * 255), Math.round(0.6 * 255),
+      //                        Math.round(0.8 * 255));
+    //cv.drawContours(dst, contours, i, highScalar, 2, cv.FILLED, hierarchy,8);
+}
+
+            cv.imshow('canvasOutput',dst);
 
             // schedule the next one.
             let delay = 1000 / FPS - (Date.now() - begin);
@@ -113,6 +135,7 @@ function startTracking() {
 
             setTimeout(processVideo, delay);
         } catch (err) {
+console.log(err);
 //            utils.printError(err);
         }
     };
@@ -212,6 +235,7 @@ function opencvIsReady() {
 }
 function onLoadOpenCv(message) {
     u("p#opencvloading").html(message);
+    console.log(message);
 }
 
 
