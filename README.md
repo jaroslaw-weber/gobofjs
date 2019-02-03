@@ -2,7 +2,14 @@
 
 6dof tracking inside the browser!
 
+open firefox,
 go to:
+about:config
+then set
+network.websocket.allowInsecureFromHTTPS
+flag to true.
+
+Then go to:
 
 https://jaroslaw-weber.github.io/gobofjs/
 
