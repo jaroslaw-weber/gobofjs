@@ -12,7 +12,25 @@ targetWidth = 5;
 
 onemeter = 100;
 
+function getHsv()
+{
+var values = [];
+["low-h","low-s", "low-v","high-h","high-s", "high-v"].forEach(x =>{
+	var e =u("input#"+x);
+//	console.log(e);
+	var v=e.first().value;
+	//console.log(v);
+	var vi = parseInt(v);
+	values.push(vi);
+	
+});
+//console.log(values);
+	return values;
+}
 function startTracking() {
+
+	let dsize = new cv.Size(130,100);
+	let small = new cv.Mat(130, 100, cv.CV_8UC4);
     let video = document.getElementById('webcam');
     let cap = new cv.VideoCapture(video);
 
@@ -20,9 +38,10 @@ function startTracking() {
     // take first frame of the video
     let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
     cap.read(frame);
+    //cv.resize(frame, frame, dsize, 0,0, cv.INTER_AREA);
 
     // hardcode the initial location of window
-    let trackWindow = new cv.Rect(150, 60, 63, 125);
+    let trackWindow = new cv.Rect(10, 10, 10,10);
 
     // set up the ROI for tracking
     let roi = frame.roi(trackWindow);
@@ -30,14 +49,11 @@ function startTracking() {
     cv.cvtColor(roi, hsvRoi, cv.COLOR_RGBA2RGB);
     cv.cvtColor(hsvRoi, hsvRoi, cv.COLOR_RGB2HSV);
     let mask = new cv.Mat();
-let ksize = new cv.Size(59, 59);
-
-    let sensitivity =40;
-    //lower_green = np.array([60 - sensitivity, 30, 30])
-    //upper_green = np.array([80 + sensitivity, 255, 255])
-
-    let lowScalar = new cv.Scalar(60-sensitivity, 80, 50);
-    let highScalar = new cv.Scalar(60+sensitivity, 255, 255);
+let ksize = new cv.Size(11, 11);
+	let hsvSettings = getHsv();
+    let lowScalar = new cv.Scalar(hsvSettings[0],hsvSettings[1],hsvSettings[2] );
+    let highScalar = new cv.Scalar(hsvSettings[3],hsvSettings[4],hsvSettings[5]);
+    
     let low = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), lowScalar);
     let high = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), highScalar);
     cv.inRange(hsvRoi, low, high, mask);
@@ -54,7 +70,7 @@ let ksize = new cv.Size(59, 59);
     let termCrit = new cv.TermCriteria(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 1);
 
     let hsv = new cv.Mat(video.height, video.width, cv.CV_8UC3);
-    let hsvVec = new cv.MatVector();
+   let hsvVec = new cv.MatVector();
     hsvVec.push_back(hsv);
     let dst = new cv.Mat();
     let trackBox = null;
@@ -72,8 +88,10 @@ let hierarchy = new cv.Mat();
 
             // start processing.
             cap.read(frame);
-            cv.GaussianBlur(frame,frame, ksize, 0, 0, cv.BORDER_DEFAULT);
-            cv.cvtColor(frame, hsv, cv.COLOR_RGBA2RGB);
+            
+            cv.resize(frame, small, dsize, 0,0, cv.INTER_AREA);
+            //cv.GaussianBlur(frame, ksize, 0, 0, cv.BORDER_DEFAULT);
+            cv.cvtColor(small, hsv, cv.COLOR_RGBA2RGB);
             cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
             cv.calcBackProject(hsvVec, [0], roiHist, dst, [0, 180], 1);
 
@@ -110,7 +128,7 @@ cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
 for (let i = 0; i < contours.size(); ++i) {
     //let ccolor = new cv.Scalar(Math.round(0.3 * 255), Math.round(0.6 * 255),
       //                        Math.round(0.8 * 255));
-    //cv.drawContours(dst, contours, i, highScalar, 2, cv.FILLED, hierarchy,8);
+    cv.drawContours(dst, contours, i, highScalar, 2, cv.FILLED, hierarchy,8);
 }
 
             cv.imshow('canvasOutput',dst);
