@@ -10,27 +10,36 @@ var start = Date.now();
 var focalLength = 0.4;
 targetWidth = 5;
 
+var h = 100;
+var w = 100;
+var low = undefined;
+var high = undefined;
+var hsv = undefined;
+var minradius = 6;
 onemeter = 100;
 
-function getHsv()
-{
-var values = [];
-["low-h","low-s", "low-v","high-h","high-s", "high-v"].forEach(x =>{
-	var e =u("input#"+x);
-//	console.log(e);
-	var v=e.first().value;
-	//console.log(v);
-	var vi = parseInt(v);
-	values.push(vi);
-	
-});
-//console.log(values);
-	return values;
+
+function getHsv() {
+    var values = [];
+    ["low-h", "low-s", "low-v", "high-h", "high-s", "high-v"].forEach(x => {
+        var e = u("input#" + x);
+        //	console.log(e);
+        var v = e.first().value;
+        //console.log(v);
+        var vi = parseInt(v);
+        values.push(vi);
+
+    });
+    //console.log(values);
+    return values;
 }
 function startTracking() {
 
-	let dsize = new cv.Size(130,100);
-	let small = new cv.Mat(130, 100, cv.CV_8UC4);
+    let ksize = new cv.Size(3, 3);
+    let M = cv.Mat.ones(3, 3, cv.CV_8U);
+    let anchor = new cv.Point(-1, -1);
+    let dsize = new cv.Size(h, w);
+    let small = new cv.Mat(h, w, cv.CV_8UC4);
     let video = document.getElementById('webcam');
     let cap = new cv.VideoCapture(video);
 
@@ -41,7 +50,7 @@ function startTracking() {
     //cv.resize(frame, frame, dsize, 0,0, cv.INTER_AREA);
 
     // hardcode the initial location of window
-    let trackWindow = new cv.Rect(10, 10, 10,10);
+    let trackWindow = new cv.Rect(10, 10, 10, 10);
 
     // set up the ROI for tracking
     let roi = frame.roi(trackWindow);
@@ -49,34 +58,23 @@ function startTracking() {
     cv.cvtColor(roi, hsvRoi, cv.COLOR_RGBA2RGB);
     cv.cvtColor(hsvRoi, hsvRoi, cv.COLOR_RGB2HSV);
     let mask = new cv.Mat();
-let ksize = new cv.Size(11, 11);
-	let hsvSettings = getHsv();
-    let lowScalar = new cv.Scalar(hsvSettings[0],hsvSettings[1],hsvSettings[2] );
-    let highScalar = new cv.Scalar(hsvSettings[3],hsvSettings[4],hsvSettings[5]);
-    
-    let low = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), lowScalar);
-    let high = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), highScalar);
-    cv.inRange(hsvRoi, low, high, mask);
+
     let roiHist = new cv.Mat();
     let hsvRoiVec = new cv.MatVector();
     hsvRoiVec.push_back(hsvRoi);
     cv.calcHist(hsvRoiVec, [0], mask, roiHist, [180], [0, 180]);
     cv.normalize(roiHist, roiHist, 0, 255, cv.NORM_MINMAX);
 
-    // delete useless mats.
-//    roi.delete(); hsvRoi.delete(); mask.delete(); low.delete(); high.delete(); hsvRoiVec.delete();
 
-    // Setup the termination criteria, either 10 iteration or move by atleast 1 pt
-    let termCrit = new cv.TermCriteria(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 1);
 
-    let hsv = new cv.Mat(video.height, video.width, cv.CV_8UC3);
-   let hsvVec = new cv.MatVector();
+    hsv = new cv.Mat(video.height, video.width, cv.CV_8UC3);
+    updateHsvRanges();
+    let hsvVec = new cv.MatVector();
     hsvVec.push_back(hsv);
     let dst = new cv.Mat();
-    let trackBox = null;
 
-let contours = new cv.MatVector();
-let hierarchy = new cv.Mat();
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
     function processVideo() {
         try {
             if (!streaming) {
@@ -86,52 +84,71 @@ let hierarchy = new cv.Mat();
             }
             let begin = Date.now();
 
-            // start processing.
             cap.read(frame);
-            
-            cv.resize(frame, small, dsize, 0,0, cv.INTER_AREA);
-            //cv.GaussianBlur(frame, ksize, 0, 0, cv.BORDER_DEFAULT);
+            cv.resize(frame, small, dsize, 0, 0, cv.INTER_AREA);
+            cv.GaussianBlur(small, small, ksize, 0, 0, cv.BORDER_DEFAULT);
+
             cv.cvtColor(small, hsv, cv.COLOR_RGBA2RGB);
             cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
-            cv.calcBackProject(hsvVec, [0], roiHist, dst, [0, 180], 1);
-
-            // apply camshift to get the new location
-            //[trackBox, trackWindow] = cv.CamShift(dst, trackWindow, termCrit);
-
-            // Draw it on image
-            /*let pts = cv.rotatedRectPoints(trackBox);
-            if (pts.length > 0) {
-                cv.line(frame, pts[0], pts[1], [255, 0, 0, 255], 3);
-                cv.line(frame, pts[1], pts[2], [255, 0, 0, 255], 3);
-                cv.line(frame, pts[2], pts[3], [255, 0, 0, 255], 3);
-                cv.line(frame, pts[3], pts[0], [255, 0, 0, 255], 3);
-                try {
-                    sendXYZ(pts);
-                    //var ptsAsStr = JSON.stringify(pts);
-                    //var xyz = JSON.stringify(pts);
-                    //console.log(xyz)
-                    //ws.send(xyz);
-                } catch (e) {
-
+            cv.inRange(hsv, low, high, dst);
+            cv.erode(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+            cv.dilate(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+            
+            cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+            //console.log("conoturs;"+contours.size())
+            
+            var biggestContour = undefined;
+            var biggestarea = undefined
+            var biggestContourIndex = -1;
+            for (var i = 0; i < contours.size(); i++) {
+                
+                
+                let contour = contours.get(i);
+                if (biggestContour == undefined) {
+                    biggestContour = contour;
+                    biggestarea = cv.contourArea(contour, false);
+                    continue;
                 }
+
+                let area = cv.contourArea(contour, false);
+                if (area > biggestarea) {
+                    biggestContour = contour;
+                    biggestarea = area;
+                    biggestContourIndex = i;
+                }
+                
+
+
+                //let ccolor = new cv.Scalar(Math.round(0.3 * 255), Math.round(0.6 * 255),
+                //                        Math.round(0.8 * 255));
+                //cv.drawContours(small, contours, i, [255,0,0,255], 2, cv.FILLED, hierarchy,8);
+            };
+            if(biggestContourIndex>=0)
+            {
+                //console.log("area:"+area);
+                cv.drawContours(small, contours, biggestContourIndex, [255, 0, 0, 255], 2, cv.FILLED, hierarchy,8);
+                let rect = cv.boundingRect(biggestContour);
+                /*
+                let Moments = cv.moments(biggestContour, false);
+                let x = M.m10/M.m00
+                let y = M.m01/M.m00
+                let radius = rect[1].x - rect[0].x;
+                */
+               var canvasX = rect.x;
+               var canvasY = rect.y;
+               var distance = (rect.width * focalLength) / canvasOutput.width;
+               var offset = maxoffset * distance;
+               var x = canvasX / canvasOutput.width * onemeter + offset;
+               var y = canvasY / canvasOutput.height * onemeter + offset;
+               z = onemeter - distance; //min -100 (cm), max 100(cm)
+
+                ws.send(JSON.stringify([x, y, z]));
+
             }
-*/
-//mask=hsv;
-// You can try more different parameters
-//cv.inRange(hsv,low,high,mask);
-
-//cv.inRange(hsv, low, high, hsv);
-
-cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
-// draw contours with random Scalar
-///console.log("conoturs;"+contours.size())
-for (let i = 0; i < contours.size(); ++i) {
-    //let ccolor = new cv.Scalar(Math.round(0.3 * 255), Math.round(0.6 * 255),
-      //                        Math.round(0.8 * 255));
-    cv.drawContours(dst, contours, i, highScalar, 2, cv.FILLED, hierarchy,8);
-}
-
-            cv.imshow('canvasOutput',dst);
+            
+            
+            cv.imshow('trackingCheck', small);
+            cv.imshow('canvasOutput', dst);
 
             // schedule the next one.
             let delay = 1000 / FPS - (Date.now() - begin);
@@ -153,8 +170,7 @@ for (let i = 0; i < contours.size(); ++i) {
 
             setTimeout(processVideo, delay);
         } catch (err) {
-console.log(err);
-//            utils.printError(err);
+            console.log(err);
         }
     };
 
@@ -169,14 +185,14 @@ var maxoffset = 100;
 function sendXYZ(pts) {
     radius = Math.abs(pts[0].x - pts[1].x);
     distance = (targetWidth * focalLength) / canvasOutput.width;
-    z = onemeter-distance; //min -100 (cm), max 100(cm)
-    var offset = maxoffset*distance;
+    z = onemeter - distance; //min -100 (cm), max 100(cm)
+    var offset = maxoffset * distance;
 
 
     var canvasX = (pts[0].x + pts[1].x + pts[2].x + pts[3].x) / 4;
     var canvasY = (pts[0].y + pts[1].y + pts[2].y + pts[3].y) / 4;
     x = canvasX / canvasOutput.width * onemeter + offset;
-    y = canvasY / canvasOutput.height * onemeter+ offset;
+    y = canvasY / canvasOutput.height * onemeter + offset;
     //position.html(`x: ${x}, y:${y}, z${z}, distance: ${distance}, radius(px): ${radius}`)
     ws.send(JSON.stringify([x, y, z]));
 }
@@ -186,6 +202,7 @@ let streaming = false;
 let videoInput = document.getElementById('webcam');
 let startAndStop = document.getElementById('startAndStop');
 let canvasOutput = document.getElementById('canvasOutput');
+let trackingCheck = document.getElementById('trackingCheck');
 let canvasContext = canvasOutput.getContext('2d');
 
 startAndStop.addEventListener('click', () => {
@@ -266,7 +283,16 @@ function setFocalLength(v) {
 
 
 u("input#targetwidth").on("change", (e) => setTargetWidth(e.currentTarget.value));
+u("button#hsvbtn").on("click", (e) => {
+    updateHsvRanges();
+});
 
+function updateHsvRanges() {
+    let hsvSettings = getHsv();
+
+    low = new cv.Mat(h, w, hsv.type(), [hsvSettings[0], hsvSettings[1], hsvSettings[2], 0]);
+    high = new cv.Mat(h, w, hsv.type(), [hsvSettings[3], hsvSettings[4], hsvSettings[5], 255]);
+}
 function setFocalLength(v) {
     targetWidth = v;
 }
