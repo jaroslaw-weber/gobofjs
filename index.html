@@ -15,60 +15,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gobof.js - 6dof tracking in browser</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pickr-widget/dist/pickr.min.css" />
 </head>
 
 <body>
   <section class="section">
-    <div class="container">
+    <div id="tracking" class="container">
 
       <h1 class="title">gobof.js</h1>
       <p id="opencvloading">....loading....</p>
 
       <hr>
       <div>
-        <p>set fps:</p>
-        <br>
-        <button class="button" onclick="setFps(120)">120fps</button>
-        <button class="button" onclick="setFps(72)">72fps</button>
-        <button class="button" onclick="setFps(60)">60fps</button>
-        <button class="button" onclick="setFps(36)">36fps</button>
-        <button class="button" onclick="setFps(30)">30fps</button>
+        <p>sfps:</p>
+        <input v-model="fps" type="text" class="input" @input="fpsupdate">
       </div>
       <div>
-        <p>adjust focal length</p>
-        <input id="focallength" type="text" class="input" value="0.4">
+        <p>focal length</p>
+        <input v-model="focallength" type="text" class="input">
       </div>
       <div>
-        <p>target width (centimeters)</p>
-        <input id="targetwidth" type="text" class="input" value="5">
+        <p>target width</p>
+        <input v-model="targetwidth" type="text" class="input">
       </div>
-      <hr>
       <div>
         <p>websocket address:</p>
         <br>
-        <input class="input" id="wsaddress" type="text" placeholder="ws://localhost:8765/">
+        <input class="input" v-model="wsaddress" type="text" @input="wsupdate">
         <br>
-        <br>
-        <button class="button" onclick="updatewebsocketaddress()">Update Websocker Address</button>
-        <br>
-        <hr>
         <p> low hsv range</p>
         <div>
-                <input class="input" id="low-h" type="text" value="30">
-                 <input class="input" id="low-s" type="text" value="60">
-                  <input class="input" id="low-v" type="text" value="8">
+          <input class="input" v-model.number="lowh" type="number" value="30">
+          <input class="input" v-model.number="lows" type="number" value="60">
+          <input class="input" v-model.number="lowv" type="number" value="8">
 
-        </div>  
-                <p> high hsv range</p>
-                <div>
-                        <input class="input" id="high-h" type="text" value="80">
-                         <input class="input" id="high-s" type="text" value="255">
-                           <input class="input" id="high-v" type="text" value="255">
-        
-                </div> 
-                <hr>               
+        </div>
+        <p> high hsv range</p>
+        <div>
+          <input class="input" v-model.number="highh" type="number" value="80">
+          <input class="input" v-model.number="highs" type="number" value="255">
+          <input class="input" v-model.number="highv" type="number" value="255">
+
+        </div>
+        <hr>
         <br>
         <button class="button is-primary" id="hsvbtn">Update HSV ranges</button>
+        <hr>
+        <p>color picker: (click, not ready yet)</p>
+        <div class="color-picker"></div>
         <hr>
         <div class="control">
           <button class="button is-primary" id="startAndStop">Start Tracking</button>
@@ -77,7 +71,7 @@
         <p>fps now:</p>
         <p id="fps">0</p>
         <hr>
-        
+
       </div>
       <hr>
       <div>
@@ -86,7 +80,11 @@
         <canvas id="trackingCheck" width="260" height="195" muted></canvas>
       </div>
       <script src="./umbrella.min.js"></script>
-      <script src="./gobof.js" type="text/javascript"></script>
+      <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+      <script src="./gobof-vue.js" type="text/javascript"></script>
+      
+      <script src="https://cdn.jsdelivr.net/npm/pickr-widget/dist/pickr.min.js"></script>
+      <script src="./colorpicker.js"></script>
     </div>
   </section>
 </body>
