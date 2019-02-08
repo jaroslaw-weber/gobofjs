@@ -61,13 +61,16 @@
           <input class="input" v-model.number="highv" type="number" value="255">
 
         </div>
+        
+                <button class="button is-primary" id="hsvbtn">Update HSV ranges</button>
         <hr>
         <div>
             <compact-picker v-model="colors"></compact-picker>
             <p> hsv: {{ colors.hsv }}</p>
         </div>
         <br>
-        <button class="button is-primary" id="hsvbtn">Update HSV ranges</button>
+        <p>movement sensitivity:</p>
+                <input v-model="movingsensitivity" type="text" class="input">
         <hr>
         <div class="control">
           <button class="button is-primary" id="startAndStop">Start Tracking</button>

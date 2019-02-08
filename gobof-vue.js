@@ -9,6 +9,7 @@ var low = undefined;
 var high = undefined;
 var hsv = undefined;
 var minradius = 6;
+var maxoffset=0.1;
 var colors = { h: 150, s: 0.66, v: 0.30 }
 var app = new Vue({
     el: '#tracking',
@@ -25,7 +26,7 @@ var app = new Vue({
         highs: 255,
         highv: 255,
         focallength: 0.4,
-        movingsensitivity: 100,
+        movingsensitivity: 1,
         targetwidth: 5,
         fps: 60,
         startstoptext: "",
@@ -47,6 +48,8 @@ var app = new Vue({
     }
 });
 
+ ws = new WebSocket(app.wsaddress);
+          
 function startTracking() {
 
     let ksize = new cv.Size(3, 3);
@@ -122,13 +125,15 @@ function startTracking() {
                 let rect = cv.boundingRect(biggestContour);
                 var canvasX = rect.x;
                 var canvasY = rect.y;
-                var distance = (rect.width * app.focalLength) / canvasOutput.width;
-                var offset = maxoffset * distance;
-                var x = canvasX / canvasOutput.width * app.movingsensitivity + offset;
-                var y = canvasY / canvasOutput.height * app.movingsensitivity + offset;
-                z = app.movingsensitivity - distance;
+                var distance = (rect.width * app.focallength) / w;
+                //console.log("distance: "+distance);
+                var x = canvasX / w * app.movingsensitivity;
+                var y = canvasY / h * app.movingsensitivity;
+                var z = app.movingsensitivity * distance;
+                var msg = app.id+","+x+","+y+","+z;
+                //console.log(msg);
 
-                ws.send(app.id+","+x+","+y+","+z);
+                ws.send(msg);
 
             }
 
