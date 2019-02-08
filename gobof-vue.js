@@ -1,5 +1,5 @@
 
-var ws = undefined;
+
 var processedFrames = 0;
 var fpsCounter = 0
 var start = Date.now();
@@ -9,10 +9,14 @@ var low = undefined;
 var high = undefined;
 var hsv = undefined;
 var minradius = 6;
-
+var colors = { h: 150, s: 0.66, v: 0.30 }
 var app = new Vue({
     el: '#tracking',
+    components: {
+        'compact-picker': VueColor.Compact,
+    },
     data: {
+        id: 1,
         wsaddress: "ws://localhost:8765/",
         lowh: 30,
         lows: 60,
@@ -25,6 +29,7 @@ var app = new Vue({
         targetwidth: 5,
         fps: 60,
         startstoptext: "",
+        colors: colors
     },
     methods: {
         fpsupdate: function ({type, target}) {
@@ -38,14 +43,9 @@ var app = new Vue({
             console.log("wsupdate");
             ws = new WebSocket(app.wsaddress);
             
-        },
-        mount()
-        {
-
-            ws = new WebSocket(app.wsaddress);
         }
     }
-})
+});
 
 function startTracking() {
 
@@ -84,8 +84,8 @@ function startTracking() {
             let begin = Date.now();
 
             cap.read(frame);
-            cv.resize(frame, small, dsize, 0, 0, cv.INTER_AREA);
-            cv.GaussianBlur(small, small, ksize, 0, 0, cv.BORDER_DEFAULT);
+            cv.resize(frame, small, dsize, 0, 0, cv.INTER_NEAREST);
+            cv.blur(small, small, ksize, anchor, cv.BORDER_DEFAULT);
 
             cv.cvtColor(small, hsv, cv.COLOR_RGBA2RGB);
             cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
@@ -93,7 +93,7 @@ function startTracking() {
             cv.erode(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
             cv.dilate(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
 
-            cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+            cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL , cv.CHAIN_APPROX_SIMPLE);
 
             var biggestContour = undefined;
             var biggestarea = undefined
@@ -128,7 +128,7 @@ function startTracking() {
                 var y = canvasY / canvasOutput.height * app.movingsensitivity + offset;
                 z = app.movingsensitivity - distance;
 
-                ws.send(JSON.stringify([x, y, z]));
+                ws.send(app.id+","+x+","+y+","+z);
 
             }
 

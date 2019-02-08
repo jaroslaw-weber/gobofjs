@@ -27,7 +27,11 @@
 
       <hr>
       <div>
-        <p>sfps:</p>
+        <p>id:</p>
+        <input v-model="id" type="text" class="input">
+      </div>
+      <div>
+        <p>fps:</p>
         <input v-model="fps" type="text" class="input" @input="fpsupdate">
       </div>
       <div>
@@ -58,14 +62,18 @@
 
         </div>
         <hr>
+        <div>
+            <compact-picker v-model="colors"></compact-picker>
+            <p> hsv: {{ colors.hsv }}</p>
+        </div>
         <br>
         <button class="button is-primary" id="hsvbtn">Update HSV ranges</button>
         <hr>
-        <p>color picker: (click, not ready yet)</p>
-        <div class="color-picker"></div>
-        <hr>
         <div class="control">
           <button class="button is-primary" id="startAndStop">Start Tracking</button>
+        </div>
+        <div>
+          <button class="button">Save Settings (not working)</button>
         </div>
         <br>
         <p>fps now:</p>
@@ -75,16 +83,19 @@
       </div>
       <hr>
       <div>
-        <video id="webcam" width="260" height="195" autoplay="true" muted></video>
-        <canvas id="canvasOutput" width="260" height="195" muted></canvas>
-        <canvas id="trackingCheck" width="260" height="195" muted></canvas>
+        <video id="webcam" width="120" height="110" autoplay="true" muted></video>
+        <canvas id="canvasOutput" width="120" height="110" muted></canvas>
       </div>
-      <script src="./umbrella.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-      <script src="./gobof-vue.js" type="text/javascript"></script>
       
-      <script src="https://cdn.jsdelivr.net/npm/pickr-widget/dist/pickr.min.js"></script>
-      <script src="./colorpicker.js"></script>
+
+      <script src="./umbrella.min.js"></script>
+
+
+      <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+      <script src="./vue-color/vue-color.min.js"></script>
+      
+      <script src="./gobof-vue.js" type="text/javascript"></script>
+
     </div>
   </section>
 </body>

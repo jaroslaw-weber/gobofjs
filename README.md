@@ -2,6 +2,8 @@
 
 6dof tracking inside the browser!
 
+![](small.gif)
+
 open firefox,
 go to:
 about:config
