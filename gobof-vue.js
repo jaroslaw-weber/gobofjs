@@ -48,7 +48,7 @@ var app = new Vue({
     }
 });
 
- ws = new WebSocket(app.wsaddress);
+ //ws = new WebSocket(app.wsaddress);
           
 function startTracking() {
 
