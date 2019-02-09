@@ -132,8 +132,12 @@ function startTracking() {
                 var z = app.movingsensitivity * distance;
                 var msg = app.id+","+x+","+y+","+z;
                 //console.log(msg);
-
-                ws.send(msg);
+				try{
+                	ws.send(msg);
+                } catch(e)
+                {
+                	console.log(e);
+                }
 
             }
 
