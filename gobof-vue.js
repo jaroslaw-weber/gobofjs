@@ -127,9 +127,9 @@ function startTracking() {
                 var canvasY = rect.y;
                 var distance = (rect.width * app.focallength) / w;
                 //console.log("distance: "+distance);
-                var x = canvasX / w * app.movingsensitivity;
-                var y = canvasY / h * app.movingsensitivity;
-                var z = app.movingsensitivity * distance;
+                var x = - canvasX / w * app.movingsensitivity;
+                var y = - canvasY / h * app.movingsensitivity;
+                var z = - app.movingsensitivity * distance*5;
                 var msg = app.id+","+x+","+y+","+z;
                 //console.log(msg);
 				try{
