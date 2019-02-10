@@ -68,15 +68,20 @@
         <hr>
         <br>
         <p>movement sensitivity:</p>
-                <input v-model="movingsensitivity" type="text" class="input">
+                <input v-model.number="movingsensitivity" type="number" class="input">
         <hr>
         <p>experimental:</p>
         <button class="button" v-on:click="save()">Save Settings</button>
                         <button class="button" v-on:click="load()">Load Settings</button>
                         <hr>
                         <p>turn on Z-axis tracking?</p>
-                                                <input type="checkbox">
+                                                <input class="checkbox" type="checkbox" v-model="ztracking">
+                                                                        <p>Z axis sensitivity</p>
+                                                                                                <input class="input" type="number" v-model.number="zsensitivity">
 
+<p>select biggest contour (not available, currently first contour only)</p>
+                                                                                                
+                                            <input class="checkbox" type="checkbox" disabled>
                         <hr>
         <div>
             <compact-picker v-model="colors"></compact-picker>
@@ -117,6 +122,9 @@
         
         <p> (color detection) tracking result: </p>
         <canvas id="canvasOutput" width="120" height="110" muted style="border-style:solid;"></canvas>
+
+        <p>errors:</p>
+              <p>{{ error }}</p>
       </div>
       
 

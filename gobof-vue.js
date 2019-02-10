@@ -1,5 +1,4 @@
 
-
 var processedFrames = 0;
 var fpsCounter = 0
 var start = Date.now();
@@ -9,7 +8,7 @@ var low = undefined;
 var high = undefined;
 var hsv = undefined;
 var minradius = 6;
-var maxoffset=0.1;
+var maxoffset = 0.1;
 var colors = { h: 150, s: 0.66, v: 0.30 }
 var app = new Vue({
     el: '#tracking',
@@ -21,20 +20,23 @@ var app = new Vue({
         wsaddress: "ws://localhost:8765/",
         lowh: 30,
         lows: 60,
-        lowv: 8,
+        lowv: 60,
         highh: 80,
-        highs: 255,
-        highv: 255,
+        highs: 230,
+        highv: 230,
+        ztracking: false,
         focallength: 0.4,
-        movingsensitivity: 1,
+        movingsensitivity: 10,
+        zsensitivity: 2,
         targetwidth: 5,
-        fps: 60,
+        fps: 65,
         startstoptext: "",
         colors: colors,
-        webcamheight: 120,
-        webcamwidth:110,
-                trackerheight: 100,
-                trackerwidth:100,
+        webcamheight: 100,
+        webcamwidth: 100,
+        trackerheight: 100,
+        trackerwidth: 100,
+        error: ""
     },
     methods: {
         fpsupdate: function () {
@@ -42,86 +44,91 @@ var app = new Vue({
             var stream = video.srcObject
             var streamsettings = stream.getVideoTracks()[0].getSettings();
             streamsettings.frameRate = app.fps;
-            
+
         },
         wsupdate: function () {
             console.log("wsupdate");
             ws = new WebSocket(app.wsaddress);
-            
+
         }
         ,
-        save:function(){
-        
-        var l = localStorage;
-        var a = app;
-        	l.wsaddress = a.wsaddress;
-        	l.movingsensitivity = a.movingsensitivity;
-        	l.lowh = a.lowh;
-        	l.lows = a.lows;
-        	l.lowv = a.lowv;
-        	l.highh = a.highh;
-        	l.highs = a.highs;
-        	l.highv = a.highv;
-        	l.trackerwidth = a.trackerwidth;
-        	l.trackerheight = a.trackerheight;
-        	l.webcamwidth = a.webcamwidth;
-        	l.webcamheight = a.webcamheight;
-        	
-        	
+        save: function () {
+
+            var l = localStorage;
+            var a = app;
+            l.wsaddress = a.wsaddress;
+            l.movingsensitivity = a.movingsensitivity;
+            l.lowh = a.lowh;
+            l.lows = a.lows;
+            l.lowv = a.lowv;
+            l.highh = a.highh;
+            l.highs = a.highs;
+            l.highv = a.highv;
+            l.trackerwidth = a.trackerwidth;
+            l.trackerheight = a.trackerheight;
+            l.webcamwidth = a.webcamwidth;
+            l.webcamheight = a.webcamheight;
+            l.zsensitivity = a.zsensitivity;
+            l.ztracking = a.ztracking;
+
+
         }
-       ,
-       load:function(){
-       
-               var a = localStorage;
-               var l = app;
-               	l.wsaddress = a.wsaddress;
-               	l.movingsensitivity = a.movingsensitivity;
-               	l.lowh = a.lowh;
-               	l.lows = a.lows;
-               	l.lowv = a.lowv;
-               	l.highh = a.highh;
-               	l.highs = a.highs;
-               	l.highv = a.highv;
-               	
-               	        	l.trackerwidth = a.trackerwidth;
-               	        	l.trackerheight = a.trackerheight;
-               	        	l.webcamwidth = a.webcamwidth;
-               	        	l.webcamheight = a.webcamheight;
-			
-       }
-       	
-       
+        ,
+        load: function () {
+
+            var a = localStorage;
+            var l = app;
+            l.wsaddress = a.wsaddress;
+            l.movingsensitivity = parseInt(a.movingsensitivity);
+            l.lowh = parseInt(a.lowh);
+            l.lows = parseInt(a.lows);
+            l.lowv = parseInt(a.lowv);
+            l.highh = parseInt(a.highh);
+            l.highs = parseInt(a.highs);
+            l.highv = parseInt(a.highv);
+
+            l.trackerwidth = parseInt(a.trackerwidth);
+            l.trackerheight = parseInt(a.trackerheight);
+            l.webcamwidth = parseInt(a.webcamwidth);
+            l.webcamheight = parseInt(a.webcamheight);
+            l.zsensitivity = parseInt(a.zsensitivity);
+            l.ztracking = a.ztracking;
+
+            app.wsupdate();
+
+        }
+
+
     },
     watch:
     {
-	    webcamheight: function (v)
-	    {
-	    videoInput.height=v;
-	    //console.log("newh:"+newh);
-	    },
-	    
-	    	    webcamwidth: function (v)
-	    	    {
-	    	    videoInput.width=v;
-	    	    //console.log("newh:"+newh);
-	    	    },
-	    	    
-	    	    	    trackerheight: function (v)
-	    	    	    {
-	    	    	    canvasOutput.height=v;
-	    	    	    //console.log("newh:"+newh);
-	    	    	    },
-	    	    	    
-	    	    	    	    trackerwidth: function (v)
-	    	    	    	    {
-	    	    	    	    canvasOutput.width=v;
-	    	    	    	    //console.log("newh:"+newh);
-	    	    	    	    }
+        webcamheight: function (v) {
+            videoInput.height = v;
+            //console.log("newh:"+newh);
+        },
+
+        webcamwidth: function (v) {
+            videoInput.width = v;
+            //console.log("newh:"+newh);
+        },
+
+        trackerheight: function (v) {
+            canvasOutput.height = v;
+            //console.log("newh:"+newh);
+        },
+
+        trackerwidth: function (v) {
+            canvasOutput.width = v;
+            //console.log("newh:"+newh);
+        }
     }
 });
 
- //ws = new WebSocket(app.wsaddress);
-          
+window.onerror = function (error, url, line) {
+    app.error = error;
+};
+//ws = new WebSocket(app.wsaddress);
+
 function startTracking() {
 
     let ksize = new cv.Size(3, 3);
@@ -170,11 +177,12 @@ function startTracking() {
             cv.erode(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
             cv.dilate(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
 
-            cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL , cv.CHAIN_APPROX_SIMPLE);
+            cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
             var biggestContour = undefined;
-            var biggestarea = undefined
+            //var biggestarea = undefined
             var biggestContourIndex = -1;
+            /*
             for (var i = 0; i < contours.size(); i++) {
 
 
@@ -191,7 +199,12 @@ function startTracking() {
                     biggestarea = area;
                     biggestContourIndex = i;
                 }
-            };
+            };*/
+            if (contours.size() >= 1) {
+                biggestContourIndex = 0;
+                biggestContour = contours.get(0);
+
+            }
 
 
 
@@ -199,18 +212,23 @@ function startTracking() {
                 let rect = cv.boundingRect(biggestContour);
                 var canvasX = rect.x;
                 var canvasY = rect.y;
+                var xpercent = canvasX / w - 0.5;
+                var ypercent = canvasY / h - 0.5;
+
                 var distance = (rect.width * app.focallength) / w;
                 //console.log("distance: "+distance);
-                var x = - canvasX / w * app.movingsensitivity;
-                var y = - canvasY / h * app.movingsensitivity;
-                var z = - app.movingsensitivity * distance*5;
-                var msg = app.id+","+x+","+y+","+z;
+                var x = - xpercent * app.movingsensitivity
+                var y = - ypercent * app.movingsensitivity;
+                var z = app.zsensitivity * distance;
+                if (!app.ztracking) {
+                    z = 0;
+                }
+                var msg = app.id + "," + x + "," + y + "," + z;
                 //console.log(msg);
-				try{
-                	ws.send(msg);
-                } catch(e)
-                {
-                	console.log(e);
+                try {
+                    ws.send(msg);
+                } catch (e) {
+                    app.error = e;
                 }
 
             }
@@ -241,7 +259,7 @@ function startTracking() {
 
             setTimeout(processVideo, delay);
         } catch (err) {
-            console.log(err);
+            app.error = err;
         }
     };
 
@@ -293,8 +311,8 @@ if (navigator.mediaDevices.getUserMedia) {
             streaming = false;
 
         })
-        .catch(function (err0r) {
-            console.log("Something went wrong!");
+        .catch(function (e) {
+            app.error = e;
         });
 }
 
@@ -320,8 +338,8 @@ u("button#hsvbtn").on("click", (e) => {
 function updateHsvRanges() {
 
     let hsvSettings = [app.lowh, app.lows, app.lowv, app.highh, app.highs, app.highv];
-var w = app.trackerwidth;
-var h = app.trackerheight;
+    var w = app.trackerwidth;
+    var h = app.trackerheight;
     low = new cv.Mat(h, w, hsv.type(), [hsvSettings[0], hsvSettings[1], hsvSettings[2], 0]);
     high = new cv.Mat(h, w, hsv.type(), [hsvSettings[3], hsvSettings[4], hsvSettings[5], 255]);
 }
