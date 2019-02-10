@@ -3,8 +3,8 @@
 var processedFrames = 0;
 var fpsCounter = 0
 var start = Date.now();
-var h = 100;
-var w = 100;
+//var h = 100;
+//var w = 100;
 var low = undefined;
 var high = undefined;
 var hsv = undefined;
@@ -30,21 +30,93 @@ var app = new Vue({
         targetwidth: 5,
         fps: 60,
         startstoptext: "",
-        colors: colors
+        colors: colors,
+        webcamheight: 120,
+        webcamwidth:110,
+                trackerheight: 100,
+                trackerwidth:100,
     },
     methods: {
-        fpsupdate: function ({type, target}) {
+        fpsupdate: function () {
             console.log("fpsupdate");
             var stream = video.srcObject
             var streamsettings = stream.getVideoTracks()[0].getSettings();
             streamsettings.frameRate = app.fps;
             
         },
-        wsupdate: function ({type, target}) {
+        wsupdate: function () {
             console.log("wsupdate");
             ws = new WebSocket(app.wsaddress);
             
         }
+        ,
+        save:function(){
+        
+        var l = localStorage;
+        var a = app;
+        	l.wsaddress = a.wsaddress;
+        	l.movingsensitivity = a.movingsensitivity;
+        	l.lowh = a.lowh;
+        	l.lows = a.lows;
+        	l.lowv = a.lowv;
+        	l.highh = a.highh;
+        	l.highs = a.highs;
+        	l.highv = a.highv;
+        	l.trackerwidth = a.trackerwidth;
+        	l.trackerheight = a.trackerheight;
+        	l.webcamwidth = a.webcamwidth;
+        	l.webcamheight = a.webcamheight;
+        	
+        	
+        }
+       ,
+       load:function(){
+       
+               var a = localStorage;
+               var l = app;
+               	l.wsaddress = a.wsaddress;
+               	l.movingsensitivity = a.movingsensitivity;
+               	l.lowh = a.lowh;
+               	l.lows = a.lows;
+               	l.lowv = a.lowv;
+               	l.highh = a.highh;
+               	l.highs = a.highs;
+               	l.highv = a.highv;
+               	
+               	        	l.trackerwidth = a.trackerwidth;
+               	        	l.trackerheight = a.trackerheight;
+               	        	l.webcamwidth = a.webcamwidth;
+               	        	l.webcamheight = a.webcamheight;
+			
+       }
+       	
+       
+    },
+    watch:
+    {
+	    webcamheight: function (v)
+	    {
+	    videoInput.height=v;
+	    //console.log("newh:"+newh);
+	    },
+	    
+	    	    webcamwidth: function (v)
+	    	    {
+	    	    videoInput.width=v;
+	    	    //console.log("newh:"+newh);
+	    	    },
+	    	    
+	    	    	    trackerheight: function (v)
+	    	    	    {
+	    	    	    canvasOutput.height=v;
+	    	    	    //console.log("newh:"+newh);
+	    	    	    },
+	    	    	    
+	    	    	    	    trackerwidth: function (v)
+	    	    	    	    {
+	    	    	    	    canvasOutput.width=v;
+	    	    	    	    //console.log("newh:"+newh);
+	    	    	    	    }
     }
 });
 
@@ -55,6 +127,8 @@ function startTracking() {
     let ksize = new cv.Size(3, 3);
     let M = cv.Mat.ones(3, 3, cv.CV_8U);
     let anchor = new cv.Point(-1, -1);
+    var h = app.trackerheight;
+    var w = app.trackerwidth;
     let dsize = new cv.Size(h, w);
     let small = new cv.Mat(h, w, cv.CV_8UC4);
     let video = document.getElementById('webcam');
@@ -246,7 +320,8 @@ u("button#hsvbtn").on("click", (e) => {
 function updateHsvRanges() {
 
     let hsvSettings = [app.lowh, app.lows, app.lowv, app.highh, app.highs, app.highv];
-
+var w = app.trackerwidth;
+var h = app.trackerheight;
     low = new cv.Mat(h, w, hsv.type(), [hsvSettings[0], hsvSettings[1], hsvSettings[2], 0]);
     high = new cv.Mat(h, w, hsv.type(), [hsvSettings[3], hsvSettings[4], hsvSettings[5], 255]);
 }
