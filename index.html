@@ -22,109 +22,144 @@
   <section class="section">
     <div id="tracking" class="container">
 
-      <h1 class="title">gobof.js - positional tracking for oculus go</h1>
-      <p id="opencvloading">....loading....</p>
+      <h1 class="title">gobof.js</h1>
+      <h2 class="subtitle">positional tracking for oculus go</h2>
 
-      <hr>
-      <div>
-        <p>id (default is 1, for headset. possible multiple tracking in the future.):</p>
-        <input v-model="id" type="text" class="input">
-      </div>
-      <div>
-        <p>fps:</p>
-        <input v-model="fps" type="text" class="input" @input="fpsupdate">
-      </div>
-      <div>
-        <p>focal length (differs for different cameras)</p>
-        <input v-model="focallength" type="text" class="input">
-      </div>
-      <div>
-        <p>target width (width of the object you detecting)</p>
-        <input v-model="targetwidth" type="text" class="input">
-      </div>
-      <div>
-        <p>websocket address (oculus go address, should be on the same LAN network):</p>
-        <br>
-        <input class="input" v-model="wsaddress" type="text" @input="wsupdate">
-        <button class="button is-primary" v-on:click="wsupdate()">Reconnect</button>
-        <br>
-        <p> what color do you want to detect? default is green. min value is 0 and max is 255.</p>
-        <p> low hsv range</p>
-        <div>
-          <input class="input" v-model.number="lowh" type="number">
-          <input class="input" v-model.number="lows" type="number">
-          <input class="input" v-model.number="lowv" type="number">
+      <p v-if="!wasmloaded">loading....</p>
+      <br>
 
-        </div>
-        <p> high hsv range</p>
-        <div>
-          <input class="input" v-model.number="highh" type="number">
-          <input class="input" v-model.number="highs" type="number">
-          <input class="input" v-model.number="highv" type="number">
+      <div id="simple">
+
+        <div class="box">
+
+          <div class="content">
+            <p>your webcam</p>
+          </div>
+          <video id="webcam" v-bind:width="webcamwidth" v-bind:height="webcamheight" autoplay="true" muted></video>
 
         </div>
 
-        <button class="button is-primary" id="hsvbtn">Update HSV ranges</button>
-        <hr>
-        <br>
-        <p>movement sensitivity:</p>
-        <input v-model.number="movingsensitivity" type="number" class="input">
-        <hr>
-        <p>experimental:</p>
-        <button class="button" v-on:click="save()">Save Settings</button>
-        <button class="button" v-on:click="load()">Load Settings</button>
-        <hr>
-        <p>turn on Z-axis tracking?</p>
-        <input class="checkbox" type="checkbox" v-model="ztracking">
-        <p>Z axis sensitivity</p>
-        <input class="input" type="number" v-model.number="zsensitivity">
-
-        <p>select biggest contour (not available, currently first contour only)</p>
-
-        <input class="checkbox" type="checkbox" disabled>
-        <hr>
-        <div>
-          <compact-picker v-model="colors"></compact-picker>
-          <p> hsv: {{ colors.hsv }}</p>
+        <div class="box">
+          <div class="content">
+            <p>tracking</p>
+          </div>
+          <canvas id="canvasOutput" v-bind:width="trackerwidth" v-bind:height="trackerheight" muted></canvas>
         </div>
-        <hr>
-        <div class="control">
-          <button class="button is-primary" id="startAndStop">Start Tracking</button>
+        <div class="columns">
+
+          <div class="column">
+            <div class="control">
+              <button class="button is-primary" id="startAndStop" :disabled="!wasmloaded">Start Tracking</button>
+            </div>
+          </div>
+          <div class="column">
+            <div>
+              <p>fps: {{fpscounter}}</p>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="columns">
+          <div class="column">
+            <input class="input" v-model="wsaddress" type="text" @input="wsupdate">
+          </div>
+
+          <div class="column">
+            <button class="button is-primary" v-on:click="wsupdate()" :disabled="!wasmloaded">Reconnect</button>
+          </div>
         </div>
         <div>
-        </div>
-        <br>
-        <p>fps now:</p>
-        <p id="fps">0</p>
 
+          <button class="button" v-on:click="save()">Save Settings</button>
+          <button class="button" v-on:click="load()">Load Settings</button>
+        </div>
       </div>
       <hr>
       <div>
-        <p>webcam resolution:</p>
-        <p>height:</p>
-        <input class="input" v-model.number="webcamheight" type="number">
-        <p>width</p>
-        <input class="input" v-model.number="webcamwidth" type="number">
-        <hr>
+        <button class="button" v-on:click="app.advanced=true;">More settings...</button>
       </div>
-
-      <div>
-        <p>tracker resolution:</p>
-        <p>height:</p>
-        <input class="input" v-model.number="trackerheight" type="number">
-        <p>width</p>
-        <input class="input" v-model.number="trackerwidth" type="number">
-        <hr>
-      </div>
-      <div>
-        <p>your webcam</p>
-        <video id="webcam" width="120" height="110" autoplay="true" muted style="border-style:solid;"></video>
-
-        <p> (color detection) tracking result: </p>
-        <canvas id="canvasOutput" width="120" height="110" muted style="border-style:solid;"></canvas>
+      <div id="advanced" v-if="advanced">
 
         <p>errors:</p>
         <p>{{ error }}</p>
+        <div>
+          <p>id (default is 1, for headset. possible multiple tracking in the future.):</p>
+          <input v-model="id" type="text" class="input">
+        </div>
+        <div>
+          <p>fps:</p>
+          <input v-model="fps" type="text" class="input" @input="fpsupdate">
+        </div>
+        <div>
+          <p>focal length (differs for different cameras)</p>
+          <input v-model="focallength" type="text" class="input">
+        </div>
+        <div>
+          <p>target width (width of the object you detecting)</p>
+          <input v-model="targetwidth" type="text" class="input">
+        </div>
+        <div>
+          <br>
+          <p> what color do you want to detect? default is green. min value is 0 and max is 255.</p>
+          <p> low hsv range</p>
+          <div>
+            <input class="input" v-model.number="lowh" type="number">
+            <input class="input" v-model.number="lows" type="number">
+            <input class="input" v-model.number="lowv" type="number">
+
+          </div>
+          <p> high hsv range</p>
+          <div>
+            <input class="input" v-model.number="highh" type="number">
+            <input class="input" v-model.number="highs" type="number">
+            <input class="input" v-model.number="highv" type="number">
+
+          </div>
+
+          <button class="button is-primary" id="hsvbtn" :disabled="!wasmloaded">Update HSV ranges</button>
+          <hr>
+          <br>
+          <p>movement sensitivity:</p>
+          <input v-model.number="movingsensitivity" type="number" class="input">
+          <hr>
+          <p>turn on Z-axis tracking?</p>
+          <input class="checkbox" type="checkbox" v-model="ztracking">
+          <p>Z axis sensitivity</p>
+          <input class="input" type="number" v-model.number="zsensitivity">
+
+          <p>select biggest contour (not available, currently first contour only)</p>
+
+          <input class="checkbox" type="checkbox" disabled>
+          <hr>
+          <div>
+            <compact-picker v-model="colors"></compact-picker>
+            <p> hsv: {{ colors.hsv }}</p>
+          </div>
+          <hr>
+          <div>
+          </div>
+          <br>
+
+        </div>
+        <hr>
+        <div>
+          <p>webcam resolution:</p>
+          <p>height:</p>
+          <input class="input" v-model.number="webcamheight" type="number">
+          <p>width</p>
+          <input class="input" v-model.number="webcamwidth" type="number">
+          <hr>
+        </div>
+
+        <div>
+          <p>tracker resolution:</p>
+          <p>height:</p>
+          <input class="input" v-model.number="trackerheight" type="number">
+          <p>width</p>
+          <input class="input" v-model.number="trackerwidth" type="number">
+          <hr>
+        </div>
       </div>
 
 

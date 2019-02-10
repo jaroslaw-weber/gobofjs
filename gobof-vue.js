@@ -24,10 +24,10 @@ var app = new Vue({
         highh: 80,
         highs: 230,
         highv: 230,
-        ztracking: false,
+        ztracking: true,
         focallength: 0.4,
         movingsensitivity: 10,
-        zsensitivity: 2,
+        zsensitivity: 10,
         targetwidth: 5,
         fps: 65,
         startstoptext: "",
@@ -36,7 +36,10 @@ var app = new Vue({
         webcamwidth: 100,
         trackerheight: 100,
         trackerwidth: 100,
-        error: ""
+        error: "",
+        wasmloaded:false,
+        advanced:false,
+        fpscounter:0
     },
     methods: {
         fpsupdate: function () {
@@ -99,28 +102,6 @@ var app = new Vue({
         }
 
 
-    },
-    watch:
-    {
-        webcamheight: function (v) {
-            videoInput.height = v;
-            //console.log("newh:"+newh);
-        },
-
-        webcamwidth: function (v) {
-            videoInput.width = v;
-            //console.log("newh:"+newh);
-        },
-
-        trackerheight: function (v) {
-            canvasOutput.height = v;
-            //console.log("newh:"+newh);
-        },
-
-        trackerwidth: function (v) {
-            canvasOutput.width = v;
-            //console.log("newh:"+newh);
-        }
     }
 });
 
@@ -248,8 +229,10 @@ function startTracking() {
             if (fpsCounter == 300) {
                 var passed = Date.now() - start;
                 var seconds = passed / 1000;
-                fps.innerText = processedFrames / seconds;
+                //fps.innerText = processedFrames / seconds;
+                app.fpscounter = processedFrames / seconds;
                 fpsCounter = 0;
+                
                 start = Date.now();
                 processedFrames = 0;
 
@@ -323,11 +306,13 @@ function updatewebsocketaddress() {
 
 function opencvIsReady() {
     onLoadOpenCv("wasm opencv loaded!")
+    app.wasmloaded = true;
 
 }
 function onLoadOpenCv(message) {
     u("p#opencvloading").html(message);
     console.log(message);
+    
 }
 
 //todo
