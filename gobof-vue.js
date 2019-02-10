@@ -29,7 +29,8 @@ var app = new Vue({
         movingsensitivity: 10,
         zsensitivity: 10,
         targetwidth: 5,
-        fps: 65,
+        fps: 72,
+        fpscolor: "gray",
         startstoptext: "",
         colors: colors,
         webcamheight: 100,
@@ -37,9 +38,11 @@ var app = new Vue({
         trackerheight: 100,
         trackerwidth: 100,
         error: "",
-        wasmloaded:false,
-        advanced:false,
-        fpscounter:0
+        wasmloaded: false,
+        advanced: false,
+        fpscounter: 0,
+        wsstatus: "connecting...",
+        wsstatuscolor: "orange"
     },
     methods: {
         fpsupdate: function () {
@@ -51,7 +54,31 @@ var app = new Vue({
         },
         wsupdate: function () {
             console.log("wsupdate");
-            ws = new WebSocket(app.wsaddress);
+            try {
+                ws = new WebSocket(app.wsaddress);
+                app.wsstatus = "connecting...";
+                app.wsstatuscolor = "orange";
+                ws.onerror = () => {
+
+                    if (ws.readyState == 1) {
+                        app.error = "failed to connect to websocket server"
+                    }
+                    app.error = "connection error. connection state: " + ws.readyState;
+                };
+
+                ws.onopen = () => {
+                    app.wsstatus = "connected! :)";
+                    app.wsstatuscolor = "green";
+                };
+                ws.onclose = () => {
+                    app.wsstatus = "not connected :(";
+                    app.wsstatuscolor = "red";
+                }
+
+            } catch (e) {
+                app.error = e;
+
+            }
 
         }
         ,
@@ -99,10 +126,28 @@ var app = new Vue({
 
             app.wsupdate();
 
+
         }
-
-
     }
+    ,
+    watch:
+    {
+        fpscounter: function (v) {
+            console.log("fps:" + v);
+            if (v >= 58) {
+                this.fpscolor = "green";
+            }
+            else if (v >= 48) {
+                this.fpscolor = "orange";
+            }
+            else {
+                this.fpscolor = "red";
+            }
+        }
+    }
+
+
+
 });
 
 window.onerror = function (error, url, line) {
@@ -232,7 +277,7 @@ function startTracking() {
                 //fps.innerText = processedFrames / seconds;
                 app.fpscounter = processedFrames / seconds;
                 fpsCounter = 0;
-                
+
                 start = Date.now();
                 processedFrames = 0;
 
@@ -261,8 +306,6 @@ let canvasContext = canvasOutput.getContext('2d');
 
 startAndStop.addEventListener('click', () => {
     if (!streaming) {
-        canvasOutput.width = videoInput.videoWidth;
-        canvasOutput.height = videoInput.videoHeight;
         onVideoStarted();
     } else {
         onVideoStopped();
@@ -292,6 +335,7 @@ if (navigator.mediaDevices.getUserMedia) {
         .then(function (stream) {
             video.srcObject = stream;
             streaming = false;
+            onVideoStarted();
 
         })
         .catch(function (e) {
@@ -299,20 +343,21 @@ if (navigator.mediaDevices.getUserMedia) {
         });
 }
 
-//todo
-function updatewebsocketaddress() {
-    ws = new WebSocket(app.wsaddress);
-}
-
 function opencvIsReady() {
     onLoadOpenCv("wasm opencv loaded!")
     app.wasmloaded = true;
+
+
+    if (localStorage.wsaddress) {
+        app.wsaddress = localStorage.wsaddress;
+        app.wsupdate();
+    }
 
 }
 function onLoadOpenCv(message) {
     u("p#opencvloading").html(message);
     console.log(message);
-    
+
 }
 
 //todo
