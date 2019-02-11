@@ -47,10 +47,15 @@ var app = new Vue({
     },
     methods: {
         fpsupdate: function () {
+            try{
             console.log("fpsupdate");
             var stream = video.srcObject
             var streamsettings = stream.getVideoTracks()[0].getSettings();
             streamsettings.frameRate = app.fps;
+            } catch(e)
+            {
+                app.error=e;
+            }
 
         },
         wsupdate: function () {
@@ -71,10 +76,18 @@ var app = new Vue({
                     app.wsstatus = "connected! :)";
                     app.wsstatuscolor = "green";
                 };
-                ws.onclose = () => {
+                ws.onclose = (e) => {
+                    var err = "Close Code: " + e.code + ", Close Reason: " + e.reason;
+                    app.error = err;
+                    console.log(e);
                     app.wsstatus = "not connected :(";
                     app.wsstatuscolor = "red";
                 }
+                ws.onmessage = function(e){
+                    var server_message = e.data;
+                    alert(server_message);
+                    return false;
+                 }
 
             } catch (e) {
                 app.error = e;
@@ -342,6 +355,7 @@ function loadwebcam() {
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(function (stream) {
                 console.log("start streaming!");
+
                 video.srcObject = stream;
                 video.play();
                 onVideoStarted();
@@ -352,8 +366,8 @@ function loadwebcam() {
                 app.error = e;
             });
     }
-    else{
-        app.error="failed to get user media";
+    else {
+        app.error = "failed to get user media";
     }
 }
 
