@@ -39,6 +39,7 @@ var app = new Vue({
         trackerwidth: 100,
         error: "",
         wasmloaded: false,
+        webcamloaded: false,
         advanced: false,
         fpscounter: 0,
         wsstatus: "connecting...",
@@ -313,6 +314,10 @@ startAndStop.addEventListener('click', () => {
 });
 
 function onVideoStarted() {
+    app.wsupdate();
+
+    console.log("on video started");
+
     streaming = true;
     startAndStop.innerText = 'Stop';
     startTracking();
@@ -330,28 +335,36 @@ var video = document.querySelector("#webcam");
 
 //todo
 
-if (navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(function (stream) {
-            video.srcObject = stream;
-            streaming = false;
-            onVideoStarted();
 
-        })
-        .catch(function (e) {
-            app.error = e;
-        });
+function loadwebcam() {
+
+    if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                console.log("start streaming!");
+                video.srcObject = stream;
+                video.play();
+                onVideoStarted();
+
+
+            })
+            .catch(function (e) {
+                app.error = e;
+            });
+    }
+    else{
+        app.error="failed to get user media";
+    }
 }
+
+
 
 function opencvIsReady() {
     onLoadOpenCv("wasm opencv loaded!")
     app.wasmloaded = true;
+    loadwebcam();
 
 
-    if (localStorage.wsaddress) {
-        app.wsaddress = localStorage.wsaddress;
-        app.wsupdate();
-    }
 
 }
 function onLoadOpenCv(message) {
@@ -372,4 +385,8 @@ function updateHsvRanges() {
     var h = app.trackerheight;
     low = new cv.Mat(h, w, hsv.type(), [hsvSettings[0], hsvSettings[1], hsvSettings[2], 0]);
     high = new cv.Mat(h, w, hsv.type(), [hsvSettings[3], hsvSettings[4], hsvSettings[5], 255]);
+}
+
+if (localStorage.wsaddress) {
+    app.wsaddress = localStorage.wsaddress;
 }
