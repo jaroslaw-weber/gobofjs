@@ -145,17 +145,17 @@
 
           <div class="field">
             <label class="label">tracker</label>
-            <div class="control" v-model.number="id" value="1">
+            <div class="control">
               <label class="radio">
-                <input type="radio" name="answer" value="1">
+                <input type="radio" name="answer" value="1" v-model.number="id">
                 head
               </label>
               <label class="radio">
-                <input type="radio" name="answer" value="2">
+                <input type="radio" name="answer" value="2" v-model.number="id">
                 right hand
               </label>
               <label class="radio">
-                <input type="radio" name="answer" value="3">
+                <input type="radio" name="answer" value="3" v-model.number="id">
                 left hand
               </label>
             </div>
@@ -180,7 +180,7 @@
             <label class="label">target width</label>
             <p class="help">width of the object you detecting (cm)</p>
             <div class="control">
-              <input class="slider has-output" step="0.1" min="1" max="50" type="range" v-model.number="targetwidth">
+              <input class="slider has-output" step="0.1" min="1" max="40" type="range" v-model.number="targetwidth">
               <output>{{targetwidth}}</output>
             </div>
           </div>
