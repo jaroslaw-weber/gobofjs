@@ -15,6 +15,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gobof.js - 6dof tracking in browser</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+  <link rel="stylesheet" href="./bulma-slider.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pickr-widget/dist/pickr.min.css" />
 </head>
 
@@ -89,107 +90,135 @@
         </div>
       </div>
       <hr>
-      <div>
-        <button class="button" v-on:click="app.advanced=true;">More settings...</button>
-      </div>
-      <div id="advanced" v-if="advanced">
-        <hr>
-        <div>
-          <div>
-            <p>basic settings</p>
-          </div>
-          <div>
+      <div id="advanced">
+        <div id="settings">
+          <div class="field">
+            <label class="label">tracker</label>
+            <div class="control" v-model.number="id">
+              <label class="radio">
+                <input type="radio" name="answer" value="1">
+                head
+              </label>
+              <label class="radio">
+                <input type="radio" name="answer" value="2">
+                right hand
+              </label>
+              <label class="radio">
+                <input type="radio" name="answer" value="3">
+                left hand
+              </label>
+            </div>
+            <!--
             <p>id (default is 1, for headset. possible multiple tracking in the future.):</p>
-            <input v-model="id" type="text" class="input">
+            <input v-model="id" type="text" class="input">-->
           </div>
+          <div class="field">
+            <label class="label">fps</label>
+            <div class="control">
+              <input class="slider" step="1" min="30" max="200" type="range" v-model.number="fps">
+              <output> {{fps}} </output>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">focal length</label>
+            <p class="help">differs for different cameras</p>
+            <div class="control">
+              <input class="slider has-output" step="0.05" min="0.1" max="2" type="range" v-model.number="focallength">
+              <output>{{focallength}}</output>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">target width</label>
+            <p class="help">width of the object you detecting (cm)</p>
+            <div class="control">
+              <input class="slider has-output" step="0.1" min="1" max="50" type="range" v-model.number="targetwidth">
+              <output>{{targetwidth}}</output>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">resolution</label>
+            <p class="help">{{webcamwidth}} x {{webcamheight}}</p>
+            <div class="control">
+              <input class="slider has-output" step="1" min="50" max="400" type="range" v-model.number="webcamwidth">
+              <output>{{webcamwidth}}</output>
+            </div>
+          </div>
+
+
+          <div class="field">
+            <label class="label">movement sensitivity</label>
+            <p class="help" sensitivity for x and y axis></p>
+            <div class="control">
+              <input class="slider has-output" step="1" min="0" max="300" type="range"
+                v-model.number="movingsensitivity">
+              <output>{{movingsensitivity}}</output>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">z axis sensitivity</label>
+            <p class="help">sensitivity for z axis</p>
+            <div class="control">
+              <input class="slider has-output" step="1" min="0" max="300" type="range" v-model.number="zsensitivity">
+              <output>{{zsensitivity}}</output>
+            </div>
+          </div>
+
+
+
+          <div class="field">
+            <label class="label">hue sensitivity</label>
+            <p class="help">color sensitivity</p>
+            <div class="control">
+              <input class="slider has-output" step="0.05" min="0" max="1" type="range"
+                v-model.number="colorhuesensitivity">
+              <output>{{colorhuesensitivity}}</output>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">saturation sensitivity</label>
+            <p class="help">color sensitivity</p>
+            <div class="control">
+              <input class="slider has-output" step="0.05" min="0" max="1" type="range"
+                v-model.number="colorsaturationsensitivity">
+              <output>{{colorsaturationsensitivity}}</output>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">value sensitivity</label>
+            <p class="help">color sensitivity</p>
+            <div class="control">
+              <input class="slider has-output" step="0.05" min="0" max="1" type="range"
+                v-model.number="colorvaluesensitivity">
+              <output>{{colorvaluesensitivity}}</output>
+            </div>
+          </div>
+
           <div>
-            <p>fps:</p>
-            <input v-model="fps" type="text" class="input" @input="fpsupdate">
+            <label class="label">color</label>
+            <div>
+              <compact-picker v-model="colors"></compact-picker>
+            </div>
+            <br>
+            <label class="label">hsv range</label>
+            <p> low: {{lowh}}, {{lows}}, {{lowv}}</p>
+            <p> high: {{highh}}, {{highs}}, {{highv}}</p>
           </div>
-          <div>
-            <p>focal length (differs for different cameras)</p>
-            <input v-model="focallength" type="text" class="input">
-          </div>
-          <div>
-            <p>target width (width of the object you detecting)</p>
-            <input v-model="targetwidth" type="text" class="input">
-          </div>
+
+
         </div>
-        <hr>
 
         <div>
+          <br>
           <div>
-            <p> color detection settings</p>
-          </div>
-          <div>
-            <p> what color do you want to detect? default is green. min value is 0 and max is 255.</p>
-          </div>
-          <div>
-            <p> low hsv range</p>
-          </div>
-          <div>
-            <input class="input" v-model.number="lowh" type="number">
-            <input class="input" v-model.number="lows" type="number">
-            <input class="input" v-model.number="lowv" type="number">
 
-          </div>
-          <div>
-            <p> high hsv range</p>
-          </div>
-          <div>
-            <input class="input" v-model.number="highh" type="number">
-            <input class="input" v-model.number="highs" type="number">
-            <input class="input" v-model.number="highv" type="number">
-
-          </div>
-          <div>
-            <button class="button is-primary" id="hsvbtn" :disabled="!wasmloaded">Update HSV ranges</button>
-          </div>
-
-          <p>color picker</p>
-          <div>
-            <compact-picker v-model="colors"></compact-picker>
-            <p> hsv: {{ colors.hsv }}</p>
-          </div>
-        </div>
-        <hr>
-        <div>
-          <p>sensitivity and z axis settings</p>
-
-          <p>movement sensitivity:</p>
-          <input v-model.number="movingsensitivity" type="number" class="input">
-          <p>turn on Z-axis tracking?</p>
-          <input class="checkbox" type="checkbox" v-model="ztracking">
-          <p>Z axis sensitivity</p>
-          <input class="input" type="number" v-model.number="zsensitivity">
-
+            <!--
           <p>select biggest contour (not available, currently first contour only)</p>
-
           <input class="checkbox" type="checkbox" disabled>
-        </div>
-        <br>
-
-        <div>
-          <p>resolution settings</p>
-          <div>
-            <p>webcam resolution:</p>
-            <p>height:</p>
-            <input class="input" v-model.number="webcamheight" type="number">
-            <p>width</p>
-            <input class="input" v-model.number="webcamwidth" type="number">
+        -->
           </div>
 
-          <div>
-            <p>tracker resolution:</p>
-            <p>height:</p>
-            <input class="input" v-model.number="trackerheight" type="number">
-            <p>width</p>
-            <input class="input" v-model.number="trackerwidth" type="number">
-          </div>
-
-
         </div>
-        <a class="button" v-bind:href="wsaddress">Connection Test</a>
       </div>
     </div>
 

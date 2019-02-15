@@ -9,7 +9,6 @@ var high = undefined;
 var hsv = undefined;
 var minradius = 6;
 var maxoffset = 0.1;
-var colors = { h: 150, s: 0.66, v: 0.30 }
 var app = new Vue({
     el: '#tracking',
     components: {
@@ -18,12 +17,10 @@ var app = new Vue({
     data: {
         id: 1,
         wsaddress: "ws://localhost:8765/",
-        lowh: 30,
-        lows: 60,
-        lowv: 60,
-        highh: 80,
-        highs: 230,
-        highv: 230,
+        colorhuesensitivity: 0.2,
+        colorsaturationsensitivity: 0.2,
+        colorvaluesensitivity: 0.2,
+
         ztracking: true,
         focallength: 0.4,
         movingsensitivity: 10,
@@ -32,11 +29,17 @@ var app = new Vue({
         fps: 72,
         fpscolor: "gray",
         startstoptext: "",
-        colors: colors,
-        webcamheight: 100,
+        colors: { hsv: { h: 50, s: 0.5, v: 0.5 } },
+
         webcamwidth: 100,
+
+        webcamrealheight: 11,
+        webcamrealwidth: 11,
+        /*
         trackerheight: 100,
         trackerwidth: 100,
+        */
+        trackerscale: 1,
         error: "",
         wasmloaded: false,
         webcamloaded: false,
@@ -45,16 +48,67 @@ var app = new Vue({
         wsstatus: "connecting...",
         wsstatuscolor: "orange"
     },
+    computed: {
+        lowh: function () {
+            var x = this.colors.hsv.h;
+            var r = x - 255 * this.colorhuesensitivity;
+            if(r<0) return 0;
+            return r;
+        },
+        lows: function () {
+            var x = this.colors.hsv.s;
+            var r =(x *255) - (this.colorsaturationsensitivity * 255);
+            if(r<0) return 0;
+            return r;
+        },
+        lowv: function () {
+            var x = this.colors.hsv.v;
+            var r =(x *255) - (this.colorvaluesensitivity * 255);
+            if(r<0) return 0;
+            return r;
+        },
+        highh: function () {
+            var x = this.colors.hsv.h;
+            var r = x + 255 * this.colorhuesensitivity;
+            if(r>255) return 255;
+            return r;
+        },
+        highs: function () {
+            var x = this.colors.hsv.s;
+            var r =(x *255) + (this.colorsaturationsensitivity * 255);
+            if(r>255) return 255;
+            return r;
+        },
+        highv: function () {
+            var x = this.colors.hsv.v;
+            var r = (x * 255) + (this.colorvaluesensitivity * 255);
+            if( r>255) return 255;
+            return r;
+        },
+        aspect: function () {
+            return this.webcamrealheight / this.webcamrealwidth;
+        },
+        trackerheight: function () {
+            return this.webcamheight * this.aspect * this.trackerscale;
+
+        },
+        trackerwidth: function () {
+            return this.webcamwidth / this.aspect * this.trackerscale;
+
+        },
+        webcamheight: function () {
+            return this.webcamwidth;
+        }
+    },
     methods: {
         fpsupdate: function () {
-            try{
-            console.log("fpsupdate");
-            var stream = video.srcObject
-            var streamsettings = stream.getVideoTracks()[0].getSettings();
-            streamsettings.frameRate = app.fps;
-            } catch(e)
-            {
-                app.error=e;
+            try {
+                console.log("fpsupdate");
+                var stream = video.srcObject
+                var streamsettings = stream.getVideoTracks()[0].getSettings();
+                streamsettings.frameRate = app.fps;
+            } catch (e) {
+                app.error = e;
             }
 
         },
@@ -83,11 +137,11 @@ var app = new Vue({
                     app.wsstatus = "not connected :(";
                     app.wsstatuscolor = "red";
                 }
-                ws.onmessage = function(e){
+                ws.onmessage = function (e) {
                     var server_message = e.data;
                     alert(server_message);
                     return false;
-                 }
+                }
 
             } catch (e) {
                 app.error = e;
@@ -108,8 +162,8 @@ var app = new Vue({
             l.highh = a.highh;
             l.highs = a.highs;
             l.highv = a.highv;
-            l.trackerwidth = a.trackerwidth;
-            l.trackerheight = a.trackerheight;
+            //l.trackerwidth = a.trackerwidth;
+            //l.trackerheight = a.trackerheight;
             l.webcamwidth = a.webcamwidth;
             l.webcamheight = a.webcamheight;
             l.zsensitivity = a.zsensitivity;
@@ -131,8 +185,8 @@ var app = new Vue({
             l.highs = parseInt(a.highs);
             l.highv = parseInt(a.highv);
 
-            l.trackerwidth = parseInt(a.trackerwidth);
-            l.trackerheight = parseInt(a.trackerheight);
+            //l.trackerwidth = parseInt(a.trackerwidth);
+            //l.trackerheight = parseInt(a.trackerheight);
             l.webcamwidth = parseInt(a.webcamwidth);
             l.webcamheight = parseInt(a.webcamheight);
             l.zsensitivity = parseInt(a.zsensitivity);
@@ -157,6 +211,9 @@ var app = new Vue({
             else {
                 this.fpscolor = "red";
             }
+        },
+        error: function (v) {
+            console.log(v);
         }
     }
 
@@ -174,8 +231,8 @@ function startTracking() {
     let ksize = new cv.Size(3, 3);
     let M = cv.Mat.ones(3, 3, cv.CV_8U);
     let anchor = new cv.Point(-1, -1);
-    var h = app.trackerheight;
-    var w = app.trackerwidth;
+    var h = app.webcamheight;
+    var w = app.webcamwidth;
     let dsize = new cv.Size(h, w);
     let small = new cv.Mat(h, w, cv.CV_8UC4);
     let video = document.getElementById('webcam');
@@ -327,13 +384,14 @@ startAndStop.addEventListener('click', () => {
 });
 
 function onVideoStarted() {
-    app.wsupdate();
 
     console.log("on video started");
 
     streaming = true;
     startAndStop.innerText = 'Stop';
     startTracking();
+
+    app.wsupdate();
 }
 
 function onVideoStopped() {
@@ -358,7 +416,19 @@ function loadwebcam() {
 
                 video.srcObject = stream;
                 video.play();
-                onVideoStarted();
+                video.addEventListener("loadeddata", () => {
+                    var w = video.videoWidth;
+                    var h = video.videoHeight;
+                    console.log("w: " + w + ", h: " + h);
+                    //var s = stream.getVideoTracks()[0].getSettings();
+
+
+                    app.webcamrealwidth = w;
+                    app.webcamrealheight = h;
+                    app.webcamwidth = app.webcamwidth;
+                    onVideoStarted();
+
+                });
 
 
             })
@@ -395,8 +465,8 @@ u("button#hsvbtn").on("click", (e) => {
 function updateHsvRanges() {
 
     let hsvSettings = [app.lowh, app.lows, app.lowv, app.highh, app.highs, app.highv];
-    var w = app.trackerwidth;
-    var h = app.trackerheight;
+    var w = app.webcamwidth;
+    var h = app.webcamheight;
     low = new cv.Mat(h, w, hsv.type(), [hsvSettings[0], hsvSettings[1], hsvSettings[2], 0]);
     high = new cv.Mat(h, w, hsv.type(), [hsvSettings[3], hsvSettings[4], hsvSettings[5], 255]);
 }
