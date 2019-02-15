@@ -1,14 +1,16 @@
 
 var processedFrames = 0;
-var fpsCounter = 0
 var start = Date.now();
-//var h = 100;
-//var w = 100;
 var low = undefined;
 var high = undefined;
 var hsv = undefined;
-var minradius = 6;
-var maxoffset = 0.1;
+var fpsCounter = 0;
+
+var video = document.querySelector("#webcam");
+let canvasOutput = document.getElementById('canvasOutput');
+let canvasContext = canvasOutput.getContext('2d');
+
+
 var app = new Vue({
     el: '#tracking',
     components: {
@@ -16,6 +18,7 @@ var app = new Vue({
     },
     data: {
         id: 1,
+        isLoading: true,
         wsaddress: "ws://localhost:8765/",
         colorhuesensitivity: 0.2,
         colorsaturationsensitivity: 0.2,
@@ -28,17 +31,16 @@ var app = new Vue({
         targetwidth: 5,
         fps: 72,
         fpscolor: "gray",
-        startstoptext: "",
+        //buttontext
+        isTracking: false,
         colors: { hsv: { h: 50, s: 0.5, v: 0.5 } },
+        //is webcam streaming?
+        webcamOn: false,
 
         webcamwidth: 100,
 
         webcamrealheight: 11,
         webcamrealwidth: 11,
-        /*
-        trackerheight: 100,
-        trackerwidth: 100,
-        */
         trackerscale: 1,
         error: "",
         wasmloaded: false,
@@ -46,44 +48,58 @@ var app = new Vue({
         advanced: false,
         fpscounter: 0,
         wsstatus: "connecting...",
-        wsstatuscolor: "orange"
+        wsstatuscolor: "orange",
+        loadingText: "loading",
     },
     computed: {
+        userFriendlyError: function() {
+            if(this.error.includes("1006")) return "could not connect to your headset. run the game before connecting. and check if ip address is correct.";
+            return this.error;
+        },
+        trackingButton: function(){
+            if(this.isTracking) return "stop";
+            return "start";
+        },
+        pageloaderClass: function() {
+            if(this.error!="") return "pageloader";
+            if(this.isLoading) return "pageloader is-active";
+            return "pageloader";
+        },
         lowh: function () {
             var x = this.colors.hsv.h;
             var r = x - 255 * this.colorhuesensitivity;
-            if(r<0) return 0;
-            return r;
+            if (r < 0) return 0;
+            return parseInt(r);
         },
         lows: function () {
             var x = this.colors.hsv.s;
-            var r =(x *255) - (this.colorsaturationsensitivity * 255);
-            if(r<0) return 0;
-            return r;
+            var r = (x * 255) - (this.colorsaturationsensitivity * 255);
+            if (r < 0) return 0;
+            return parseInt(r);
         },
         lowv: function () {
             var x = this.colors.hsv.v;
-            var r =(x *255) - (this.colorvaluesensitivity * 255);
-            if(r<0) return 0;
-            return r;
+            var r = (x * 255) - (this.colorvaluesensitivity * 255);
+            if (r < 0) return 0;
+            return parseInt(r);
         },
         highh: function () {
             var x = this.colors.hsv.h;
             var r = x + 255 * this.colorhuesensitivity;
-            if(r>255) return 255;
-            return r;
+            if (r > 255) return 255;
+            return parseInt(r);
         },
         highs: function () {
             var x = this.colors.hsv.s;
-            var r =(x *255) + (this.colorsaturationsensitivity * 255);
-            if(r>255) return 255;
-            return r;
+            var r = (x * 255) + (this.colorsaturationsensitivity * 255);
+            if (r > 255) return 255;
+            return parseInt(r);
         },
         highv: function () {
             var x = this.colors.hsv.v;
             var r = (x * 255) + (this.colorvaluesensitivity * 255);
-            if( r>255) return 255;
-            return r;
+            if (r > 255) return 255;
+            return parseInt(r);
         },
         aspect: function () {
             return this.webcamrealheight / this.webcamrealwidth;
@@ -101,6 +117,15 @@ var app = new Vue({
         }
     },
     methods: {
+
+        toggleTracking: function () {
+
+            if (!app.isTracking) {
+                onVideoStarted();
+            } else {
+                onVideoStopped();
+            }
+        },
         fpsupdate: function () {
             try {
                 console.log("fpsupdate");
@@ -156,14 +181,6 @@ var app = new Vue({
             var a = app;
             l.wsaddress = a.wsaddress;
             l.movingsensitivity = a.movingsensitivity;
-            l.lowh = a.lowh;
-            l.lows = a.lows;
-            l.lowv = a.lowv;
-            l.highh = a.highh;
-            l.highs = a.highs;
-            l.highv = a.highv;
-            //l.trackerwidth = a.trackerwidth;
-            //l.trackerheight = a.trackerheight;
             l.webcamwidth = a.webcamwidth;
             l.webcamheight = a.webcamheight;
             l.zsensitivity = a.zsensitivity;
@@ -178,15 +195,6 @@ var app = new Vue({
             var l = app;
             l.wsaddress = a.wsaddress;
             l.movingsensitivity = parseInt(a.movingsensitivity);
-            l.lowh = parseInt(a.lowh);
-            l.lows = parseInt(a.lows);
-            l.lowv = parseInt(a.lowv);
-            l.highh = parseInt(a.highh);
-            l.highs = parseInt(a.highs);
-            l.highv = parseInt(a.highv);
-
-            //l.trackerwidth = parseInt(a.trackerwidth);
-            //l.trackerheight = parseInt(a.trackerheight);
             l.webcamwidth = parseInt(a.webcamwidth);
             l.webcamheight = parseInt(a.webcamheight);
             l.zsensitivity = parseInt(a.zsensitivity);
@@ -224,9 +232,9 @@ var app = new Vue({
 window.onerror = function (error, url, line) {
     app.error = error;
 };
-//ws = new WebSocket(app.wsaddress);
 
 function startTracking() {
+    app.isTracking = true;
 
     let ksize = new cv.Size(3, 3);
     let M = cv.Mat.ones(3, 3, cv.CV_8U);
@@ -251,7 +259,7 @@ function startTracking() {
 
     function processVideo() {
         try {
-            if (!streaming) {
+            if (!app.isTracking) {
                 // clean and stop.
                 frame.delete();
                 dst.delete();
@@ -365,44 +373,19 @@ function startTracking() {
     // schedule the first one.
     setTimeout(processVideo, 0);
 }
-var maxDistance = app.movingsensitivity * 2; //200cm
-var maxz = 200;
-var maxoffset = 100;
 
-let streaming = false;
-let videoInput = document.getElementById('webcam');
-let startAndStop = document.getElementById('startAndStop');
-let canvasOutput = document.getElementById('canvasOutput');
-let canvasContext = canvasOutput.getContext('2d');
 
-startAndStop.addEventListener('click', () => {
-    if (!streaming) {
-        onVideoStarted();
-    } else {
-        onVideoStopped();
-    }
-});
 
 function onVideoStarted() {
 
-    console.log("on video started");
-
-    streaming = true;
-    startAndStop.innerText = 'Stop';
     startTracking();
-
     app.wsupdate();
 }
 
 function onVideoStopped() {
-    streaming = false;
-    canvasContext.clearRect(0, 0, canvasOutput.width, canvasOutput.height);
-    startAndStop.innerText = 'Start';
+    canvasContext.clearRect(0, 0, app.trackerwidth, app.trackerheight);
 }
 
-
-var fps = document.querySelector("#fps");
-var video = document.querySelector("#webcam");
 
 //todo
 
@@ -412,17 +395,12 @@ function loadwebcam() {
     if (navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(function (stream) {
-                console.log("start streaming!");
 
                 video.srcObject = stream;
                 video.play();
                 video.addEventListener("loadeddata", () => {
                     var w = video.videoWidth;
                     var h = video.videoHeight;
-                    console.log("w: " + w + ", h: " + h);
-                    //var s = stream.getVideoTracks()[0].getSettings();
-
-
                     app.webcamrealwidth = w;
                     app.webcamrealheight = h;
                     app.webcamwidth = app.webcamwidth;
@@ -444,23 +422,10 @@ function loadwebcam() {
 
 
 function opencvIsReady() {
-    onLoadOpenCv("wasm opencv loaded!")
+    app.isLoading = false;
     app.wasmloaded = true;
     loadwebcam();
-
-
-
 }
-function onLoadOpenCv(message) {
-    u("p#opencvloading").html(message);
-    console.log(message);
-
-}
-
-//todo
-u("button#hsvbtn").on("click", (e) => {
-    updateHsvRanges();
-});
 
 function updateHsvRanges() {
 

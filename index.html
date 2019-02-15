@@ -16,23 +16,20 @@
   <title>Gobof.js - 6dof tracking in browser</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
   <link rel="stylesheet" href="./bulma-slider.min.css">
+  <link rel="stylesheet" href="./bulma-pageloader.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pickr-widget/dist/pickr.min.css" />
 </head>
 
 <body>
   <section class="section">
     <div id="tracking" class="container">
-
-      <div class="box" v-if="error!=''">
-        <p>error: {{ error }}</p>
-        <br>
-        <button class="button" v-on:click="error=''">Hide Error</button>
+      <div v-bind:class="pageloaderClass">
+        <span class="title">{{loadingText}}</span>
       </div>
+
 
       <h1 class="title">gobof.js</h1>
       <h2 class="subtitle">positional tracking for oculus go</h2>
-
-      <p v-if="!wasmloaded">loading....</p>
       <br>
 
       <div id="simple">
@@ -56,7 +53,9 @@
 
           <div class="column">
             <div class="control">
-              <button class="button is-primary" id="startAndStop" :disabled="!wasmloaded">Start</button>
+              <button class="button is-primary" v-on:click="toggleTracking()" :disabled="!wasmloaded">
+                {{trackingButton}}
+              </button>
             </div>
           </div>
           <div class="column" v-if="fpscounter>1">
@@ -80,21 +79,73 @@
           </div>
 
           <div class="column">
-            <button class="button is-primary" v-on:click="wsupdate()" :disabled="!wasmloaded">Connect</button>
+            <button class="button is-primary" v-on:click="wsupdate()" :disabled="!wasmloaded">connect</button>
           </div>
+
+        </div>
+
+        <div class="box" v-if="error!=''">
+          <p>error: {{ userFriendlyError }}</p>
+          <br>
+          <button class="button" v-on:click="error=''">Hide Error</button>
         </div>
         <div>
 
-          <button class="button" v-on:click="save()">Save</button>
-          <button class="button" v-on:click="load()">Load</button>
+          <button class="button" v-on:click="save()" disabled>Save</button>
+          <button class="button" v-on:click="load()" disabled>Load</button>
         </div>
       </div>
       <hr>
       <div id="advanced">
         <div id="settings">
+
+
+          <div>
+            <label class="label">color</label>
+            <div>
+              <compact-picker v-model="colors"></compact-picker>
+            </div>
+            <br>
+            <label class="label">hsv range</label>
+            <p> low: {{lowh}}, {{lows}}, {{lowv}}</p>
+            <p> high: {{highh}}, {{highs}}, {{highv}}</p>
+            <br>
+          </div>
+
+
+          <div class="field">
+            <label class="label">hue sensitivity</label>
+            <p class="help">color sensitivity</p>
+            <div class="control">
+              <input class="slider has-output" step="0.02" min="0" max="0.6" type="range"
+                v-model.number="colorhuesensitivity">
+              <output>{{colorhuesensitivity}}</output>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">saturation sensitivity</label>
+            <p class="help">color sensitivity</p>
+            <div class="control">
+              <input class="slider has-output" step="0.02" min="0" max="0.6" type="range"
+                v-model.number="colorsaturationsensitivity">
+              <output>{{colorsaturationsensitivity}}</output>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">value sensitivity</label>
+            <p class="help">color sensitivity</p>
+            <div class="control">
+              <input class="slider has-output" step="0.02" min="0" max="0.6" type="range"
+                v-model.number="colorvaluesensitivity">
+              <output>{{colorvaluesensitivity}}</output>
+            </div>
+          </div>
+          <hr>
+
+
           <div class="field">
             <label class="label">tracker</label>
-            <div class="control" v-model.number="id">
+            <div class="control" v-model.number="id" value="1">
               <label class="radio">
                 <input type="radio" name="answer" value="1">
                 head
@@ -108,14 +159,11 @@
                 left hand
               </label>
             </div>
-            <!--
-            <p>id (default is 1, for headset. possible multiple tracking in the future.):</p>
-            <input v-model="id" type="text" class="input">-->
           </div>
           <div class="field">
             <label class="label">fps</label>
             <div class="control">
-              <input class="slider" step="1" min="30" max="200" type="range" v-model.number="fps">
+              <input class="slider" step="1" min="30" max="120" type="range" v-model.number="fps">
               <output> {{fps}} </output>
             </div>
           </div>
@@ -123,7 +171,8 @@
             <label class="label">focal length</label>
             <p class="help">differs for different cameras</p>
             <div class="control">
-              <input class="slider has-output" step="0.05" min="0.1" max="2" type="range" v-model.number="focallength">
+              <input class="slider has-output" step="0.05" min="0.1" max="0.7" type="range"
+                v-model.number="focallength">
               <output>{{focallength}}</output>
             </div>
           </div>
@@ -149,7 +198,7 @@
             <label class="label">movement sensitivity</label>
             <p class="help" sensitivity for x and y axis></p>
             <div class="control">
-              <input class="slider has-output" step="1" min="0" max="300" type="range"
+              <input class="slider has-output" step="1" min="0" max="200" type="range"
                 v-model.number="movingsensitivity">
               <output>{{movingsensitivity}}</output>
             </div>
@@ -164,46 +213,6 @@
             </div>
           </div>
 
-
-
-          <div class="field">
-            <label class="label">hue sensitivity</label>
-            <p class="help">color sensitivity</p>
-            <div class="control">
-              <input class="slider has-output" step="0.05" min="0" max="1" type="range"
-                v-model.number="colorhuesensitivity">
-              <output>{{colorhuesensitivity}}</output>
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">saturation sensitivity</label>
-            <p class="help">color sensitivity</p>
-            <div class="control">
-              <input class="slider has-output" step="0.05" min="0" max="1" type="range"
-                v-model.number="colorsaturationsensitivity">
-              <output>{{colorsaturationsensitivity}}</output>
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">value sensitivity</label>
-            <p class="help">color sensitivity</p>
-            <div class="control">
-              <input class="slider has-output" step="0.05" min="0" max="1" type="range"
-                v-model.number="colorvaluesensitivity">
-              <output>{{colorvaluesensitivity}}</output>
-            </div>
-          </div>
-
-          <div>
-            <label class="label">color</label>
-            <div>
-              <compact-picker v-model="colors"></compact-picker>
-            </div>
-            <br>
-            <label class="label">hsv range</label>
-            <p> low: {{lowh}}, {{lows}}, {{lowv}}</p>
-            <p> high: {{highh}}, {{highs}}, {{highv}}</p>
-          </div>
 
 
         </div>
@@ -224,7 +233,6 @@
 
 
     <script src="./umbrella.min.js"></script>
-
 
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <script src="./vue-color/vue-color.min.js"></script>
