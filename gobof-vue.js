@@ -385,7 +385,7 @@ function startTracking() {
 function onVideoStarted() {
 
     startTracking();
-    app.wsupdate();
+    //app.wsupdate();
 }
 
 function onVideoStopped() {
