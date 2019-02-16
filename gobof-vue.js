@@ -26,14 +26,15 @@ var app = new Vue({
         id: 1,
         isLoading: true,
         wsaddress: "ws://localhost:8765/",
-        colorhuesensitivity: 0.2,
-        colorsaturationsensitivity: 0.2,
-        colorvaluesensitivity: 0.2,
+        colorhuesensitivity: 0.1,
+        colorsaturationsensitivity: 0.4,
+        colorvaluesensitivity: 0.4,
 
         ztracking: true,
         focallength: 0.4,
         movingsensitivity: 10,
-        zsensitivity: 10,
+        yoffset: 0,
+        zsensitivity: 100,
         targetwidth: 5,
         fps: 72,
         fpscolor: "gray",
@@ -53,8 +54,8 @@ var app = new Vue({
         webcamloaded: false,
         advanced: false,
         fpscounter: 0,
-        wsstatus: "not connected",
-        wsstatuscolor: "orange",
+        wsstatus: "not connected :(",
+        wsstatuscolor: "red",
         loadingText: "loading",
     },
     computed: {
@@ -103,6 +104,7 @@ var app = new Vue({
         },
         highv: function () {
             var x = this.colors.hsv.v;
+            console.log(this.colors.hsv);
             var r = (x * 255) + (this.colorvaluesensitivity * 255);
             if (r > 255) return 255;
             return parseInt(r);
@@ -135,12 +137,10 @@ var app = new Vue({
         },
         fpsupdate: function () {
             try {
-                return;
-                //todo
                 console.log("fpsupdate");
-                if(webcam == undefined) return;
+                if (webcam == undefined) return;
                 var stream = webcam.srcObject
-                if(stream == undefined) return;
+                if (stream == undefined) return;
                 var streamsettings = stream.getVideoTracks()[0].getSettings();
                 streamsettings.frameRate = app.fps;
             } catch (e) {
@@ -187,31 +187,23 @@ var app = new Vue({
         }
         ,
         save: function () {
-            return;
 
             var l = localStorage;
             var a = app;
             l.wsaddress = a.wsaddress;
             l.movingsensitivity = a.movingsensitivity;
-            l.webcamwidth = a.webcamwidth;
-            l.webcamheight = a.webcamheight;
             l.zsensitivity = a.zsensitivity;
-            l.ztracking = a.ztracking;
 
 
         }
         ,
         load: function () {
-            return;
 
             var a = localStorage;
             var l = app;
             l.wsaddress = a.wsaddress;
             l.movingsensitivity = parseInt(a.movingsensitivity);
-            l.webcamwidth = parseInt(a.webcamwidth);
-            l.webcamheight = parseInt(a.webcamheight);
             l.zsensitivity = parseInt(a.zsensitivity);
-            l.ztracking = a.ztracking;
 
             app.wsupdate();
 
@@ -342,7 +334,7 @@ function startTracking() {
                 var distance = (rect.width * app.focallength) / w;
                 //console.log("distance: "+distance);
                 var x = - xpercent * app.movingsensitivity
-                var y = - ypercent * app.movingsensitivity;
+                var y = - ypercent * app.movingsensitivity + yoffset;
                 var z = app.zsensitivity * distance;
                 if (!app.ztracking) {
                     z = 0;
@@ -417,6 +409,8 @@ function loadwebcam() {
         md.getUserMedia({ video: true, audio: false })
             .then(function (stream) {
                 console.log("stream:" + stream);
+                webcam = document.querySelector("#webcam");
+                console.log("webcam: "+webcam);
 
                 webcam.srcObject = stream;
                 //var videoTrack = stream.getVideoTracks()[0];
@@ -424,13 +418,7 @@ function loadwebcam() {
                 webcam.play();
 
                 webcam.onloadeddata = function (e) {
-                    console.log("stream data loaded");
-                    var w = webcam.videoWidth;
-                    var h = webcam.videoHeight;
-                    app.webcamrealwidth = w;
-                    app.webcamrealheight = h;
-                    app.webcamwidth = app.webcamwidth;
-                    onVideoStarted();
+                    webcamloaded = true;
                 };
 
 
@@ -449,7 +437,7 @@ function loadwebcam() {
 function opencvIsReady() {
     app.isLoading = false;
     app.wasmloaded = true;
-    loadwebcam();
+
 }
 
 function updateHsvRanges() {
@@ -465,3 +453,8 @@ function updateHsvRanges() {
 if (localStorage.wsaddress) {
     app.wsaddress = localStorage.wsaddress;
 }
+
+//ok so the problem was loadwebcam was called too late maybe...
+loadwebcam();
+
+//app.isLoading = false;

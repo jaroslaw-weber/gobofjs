@@ -95,8 +95,8 @@
         </div>
         <div>
 
-          <button class="button" v-on:click="save()" disabled>Save</button>
-          <button class="button" v-on:click="load()" disabled>Load</button>
+          <button class="button" v-on:click="save()">Save</button>
+          <button class="button" v-on:click="load()">Load</button>
         </div>
       </div>
       <hr>
@@ -216,6 +216,16 @@
               <output>{{zsensitivity}}</output>
             </div>
           </div>
+
+
+          <div class="field">
+              <label class="label">yoffset</label>
+              <p class="help">too high or too low? adjust</p>
+              <div class="control">
+                <input class="slider has-output" step="0.5" min="0" max="100" type="range" v-model.number="yoffset">
+                <output>{{yoffset}}</output>
+              </div>
+            </div>
 
 
 
