@@ -419,11 +419,11 @@ function loadwebcam() {
                 console.log("stream:" + stream);
 
                 webcam.srcObject = stream;
-                var videoTrack = stream.getVideoTracks()[0];
-                console.log(videoTrack);
+                //var videoTrack = stream.getVideoTracks()[0];
+                //console.log(videoTrack);
                 webcam.play();
 
-                webcam.onloadedmetadata = function (e) {
+                webcam.onloadeddata = function (e) {
                     console.log("stream data loaded");
                     var w = webcam.videoWidth;
                     var h = webcam.videoHeight;
