@@ -45,8 +45,8 @@ var app = new Vue({
 
         webcamwidth: 100,
 
-        webcamrealheight: 11,
-        webcamrealwidth: 11,
+        webcamrealheight: 100,
+        webcamrealwidth: 100,
         trackerscale: 1,
         error: "",
         wasmloaded: false,
@@ -135,6 +135,8 @@ var app = new Vue({
         },
         fpsupdate: function () {
             try {
+                return;
+                //todo
                 console.log("fpsupdate");
                 if(webcam == undefined) return;
                 var stream = webcam.srcObject
