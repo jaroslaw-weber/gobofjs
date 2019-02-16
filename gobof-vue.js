@@ -7,6 +7,10 @@ var hsv = undefined;
 var fpsCounter = 0;
 
 var video = document.querySelector("#webcam");
+video.addEventListener("error", e => {
+    console.log(e);
+    app.error = e;
+});
 let canvasOutput = document.getElementById('canvasOutput');
 let canvasContext = canvasOutput.getContext('2d');
 
@@ -15,7 +19,8 @@ var app = new Vue({
     el: '#tracking',
     components: {
         //'compact-picker': VueColor.Compact,
-        'slider-picker': VueColor.Slider,
+        'sketch-picker': VueColor.Sketch,
+
     },
     data: {
         id: 1,
@@ -48,22 +53,22 @@ var app = new Vue({
         webcamloaded: false,
         advanced: false,
         fpscounter: 0,
-        wsstatus: "connecting...",
+        wsstatus: "not connected",
         wsstatuscolor: "orange",
         loadingText: "loading",
     },
     computed: {
-        userFriendlyError: function() {
+        userFriendlyError: function () {
             //if(this.error.includes("1006")) return "could not connect to your headset. run the game before connecting. and check if ip address is correct.";
             return this.error;
         },
-        trackingButton: function(){
-            if(this.isTracking) return "stop";
+        trackingButton: function () {
+            if (this.isTracking) return "stop";
             return "start";
         },
-        pageloaderClass: function() {
+        pageloaderClass: function () {
             //if(this.error!="") return "pageloader";
-            if(this.isLoading) return "pageloader is-active";
+            if (this.isLoading) return "pageloader is-active";
             return "pageloader";
         },
         lowh: function () {
@@ -178,6 +183,7 @@ var app = new Vue({
         }
         ,
         save: function () {
+            return;
 
             var l = localStorage;
             var a = app;
@@ -192,6 +198,7 @@ var app = new Vue({
         }
         ,
         load: function () {
+            return;
 
             var a = localStorage;
             var l = app;
@@ -236,6 +243,8 @@ window.onerror = function (error, url, line) {
 };
 
 function startTracking() {
+
+    video.play();
     console.log("started tracking!");
 
     let ksize = new cv.Size(3, 3);
@@ -260,7 +269,7 @@ function startTracking() {
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     updateHsvRanges();
-    
+
 
     function processVideo() {
         try {
@@ -398,16 +407,19 @@ function onVideoStopped() {
 
 function loadwebcam() {
 
-    if (navigator.mediaDevices.getUserMedia) {
+    var md = navigator.mediaDevices;
+    if (md.getUserMedia) {
         console.log("getting user media");
-        navigator.mediaDevices.getUserMedia({ video: true })
+        md.getUserMedia({ video: true, audio: false })
             .then(function (stream) {
-                console.log("stream:"+stream);
+                console.log("stream:" + stream);
 
                 video.srcObject = stream;
-                var streamsettings = stream.getVideoTracks()[0].getSettings();
-                console.log(streamsettings);
-                video.addEventListener("loadeddata", () => {
+                var videoTrack = stream.getVideoTracks()[0];
+                console.log(videoTrack);
+                video.play();
+
+                video.onloadedmetadata = function (e) {
                     console.log("stream data loaded");
                     var w = video.videoWidth;
                     var h = video.videoHeight;
@@ -415,8 +427,7 @@ function loadwebcam() {
                     app.webcamrealheight = h;
                     app.webcamwidth = app.webcamwidth;
                     onVideoStarted();
-
-                });
+                };
 
 
             })

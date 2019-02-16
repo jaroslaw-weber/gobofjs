@@ -8,11 +8,20 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
   <link rel="stylesheet" href="./bulma-slider.min.css">
   <link rel="stylesheet" href="./bulma-pageloader.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pickr-widget/dist/pickr.min.css" />
+  <style>
+    .slider {
+      width: calc(100% - (5.2rem)) !important;
+    }
+
+    output {
+      width: 4rem !important;
+    }
+  </style>
 </head>
 
 <body>
   <section class="section">
+
     <div id="tracking" class="container">
       <div v-bind:class="pageloaderClass">
         <span class="title">{{loadingText}}</span>
@@ -30,7 +39,11 @@
           <div class="content">
             <p>your webcam</p>
           </div>
-          <video id="webcam" v-bind:width="webcamwidth" v-bind:height="webcamheight" muted></video>
+          <video id="webcam" v-bind:width="webcamwidth" v-bind:height="webcamheight" autoplay muted controls>
+
+
+            Your browser does not support the video tag.
+          </video>
 
         </div>
 
@@ -94,7 +107,7 @@
           <div>
             <label class="label">color</label>
             <div>
-              <slider-picker v-model="colors"></slider-picker>
+              <sketch-picker v-model="colors"></sketch-picker>
             </div>
             <br>
             <label class="label">hsv range</label>
