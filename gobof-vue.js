@@ -24,6 +24,7 @@ var app = new Vue({
     },
     data: {
         id: 1,
+        debugMode: false,
         isLoading: true,
         wsaddress: "ws://localhost:8765/",
         colorhuesensitivity: 0.1,
@@ -344,7 +345,10 @@ function startTracking() {
                 try {
                     ws.send(msg);
                 } catch (e) {
-                    app.error = e;
+                    if(app.debugMode)
+                    {
+                        app.error = e;
+                    }
                 }
 
             }
@@ -377,7 +381,11 @@ function startTracking() {
 
             setTimeout(processVideo, delay);
         } catch (err) {
-            app.error = err;
+            if(app.debugMode)
+            {
+                app.error = err;
+
+            }
         }
     };
 
