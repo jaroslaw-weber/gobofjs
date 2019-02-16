@@ -136,7 +136,9 @@ var app = new Vue({
         fpsupdate: function () {
             try {
                 console.log("fpsupdate");
+                if(video == undefined) return;
                 var stream = video.srcObject
+                if(stream == undefined) return;
                 var streamsettings = stream.getVideoTracks()[0].getSettings();
                 streamsettings.frameRate = app.fps;
             } catch (e) {
@@ -254,7 +256,7 @@ function startTracking() {
     var w = app.webcamwidth;
     let dsize = new cv.Size(h, w);
     let small = new cv.Mat(h, w, cv.CV_8UC4);
-    let video = document.getElementById('webcam');
+    //let video = document.getElementById('webcam');
     let cap = new cv.VideoCapture(video);
 
     console.log("capturing first frame!");
