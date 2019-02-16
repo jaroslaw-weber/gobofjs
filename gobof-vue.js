@@ -14,7 +14,8 @@ let canvasContext = canvasOutput.getContext('2d');
 var app = new Vue({
     el: '#tracking',
     components: {
-        'compact-picker': VueColor.Compact,
+        //'compact-picker': VueColor.Compact,
+        'slider-picker': VueColor.Slider,
     },
     data: {
         id: 1,
@@ -53,7 +54,7 @@ var app = new Vue({
     },
     computed: {
         userFriendlyError: function() {
-            if(this.error.includes("1006")) return "could not connect to your headset. run the game before connecting. and check if ip address is correct.";
+            //if(this.error.includes("1006")) return "could not connect to your headset. run the game before connecting. and check if ip address is correct.";
             return this.error;
         },
         trackingButton: function(){
@@ -61,7 +62,7 @@ var app = new Vue({
             return "start";
         },
         pageloaderClass: function() {
-            if(this.error!="") return "pageloader";
+            //if(this.error!="") return "pageloader";
             if(this.isLoading) return "pageloader is-active";
             return "pageloader";
         },
@@ -119,8 +120,9 @@ var app = new Vue({
     methods: {
 
         toggleTracking: function () {
+            app.isTracking = !app.isTracking;
 
-            if (!app.isTracking) {
+            if (app.isTracking) {
                 onVideoStarted();
             } else {
                 onVideoStopped();
@@ -234,7 +236,7 @@ window.onerror = function (error, url, line) {
 };
 
 function startTracking() {
-    app.isTracking = true;
+    console.log("started tracking!");
 
     let ksize = new cv.Size(3, 3);
     let M = cv.Mat.ones(3, 3, cv.CV_8U);
@@ -246,6 +248,8 @@ function startTracking() {
     let video = document.getElementById('webcam');
     let cap = new cv.VideoCapture(video);
 
+    console.log("capturing first frame!");
+
 
     // take first frame of the video
     let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
@@ -256,6 +260,7 @@ function startTracking() {
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     updateHsvRanges();
+    
 
     function processVideo() {
         try {
@@ -273,6 +278,7 @@ function startTracking() {
             let begin = Date.now();
 
             cap.read(frame);
+            //console.log("reading next frame");
             cv.resize(frame, small, dsize, 0, 0, cv.INTER_NEAREST);
             cv.blur(small, small, ksize, anchor, cv.BORDER_DEFAULT);
 
@@ -393,12 +399,16 @@ function onVideoStopped() {
 function loadwebcam() {
 
     if (navigator.mediaDevices.getUserMedia) {
+        console.log("getting user media");
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(function (stream) {
+                console.log("stream:"+stream);
 
                 video.srcObject = stream;
-                video.play();
+                var streamsettings = stream.getVideoTracks()[0].getSettings();
+                console.log(streamsettings);
                 video.addEventListener("loadeddata", () => {
+                    console.log("stream data loaded");
                     var w = video.videoWidth;
                     var h = video.videoHeight;
                     app.webcamrealwidth = w;
@@ -428,6 +438,7 @@ function opencvIsReady() {
 }
 
 function updateHsvRanges() {
+    console.log("updating hsv ranges");
 
     let hsvSettings = [app.lowh, app.lows, app.lowv, app.highh, app.highs, app.highv];
     var w = app.webcamwidth;
