@@ -18,8 +18,8 @@ let canvasContext = canvasOutput.getContext('2d');
 var app = new Vue({
     el: '#tracking',
     components: {
-        //'compact-picker': VueColor.Compact,
-        'sketch-picker': VueColor.Sketch,
+        'compact-picker': VueColor.Compact,
+        //'sketch-picker': VueColor.Sketch,
 
     },
     data: {
