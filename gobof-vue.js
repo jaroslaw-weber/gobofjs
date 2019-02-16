@@ -26,6 +26,9 @@ var app = new Vue({
         id: 1,
         debugMode: false,
         isLoading: true,
+        useBlur: false,
+        useErode: false,
+        useDilate: false,
         wsaddress: "ws://localhost:8765/",
         colorhuesensitivity: 0.1,
         colorsaturationsensitivity: 0.4,
@@ -224,7 +227,7 @@ var app = new Vue({
 
 
         },
-        reset: function(){
+        reset: function () {
             localStorage.clear();
         }
     }
@@ -303,14 +306,24 @@ function startTracking() {
             cap.read(frame);
             //console.log("reading next frame");
             cv.resize(frame, small, dsize, 0, 0, cv.INTER_NEAREST);
-            cv.blur(small, small, ksize, anchor, cv.BORDER_DEFAULT);
+            if (app.useBlur) {
+
+                cv.blur(small, small, ksize, anchor, cv.BORDER_DEFAULT);
+            }
 
             cv.cvtColor(small, hsv, cv.COLOR_RGBA2RGB);
             cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
             cv.inRange(hsv, low, high, dst);
-            cv.erode(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
-            cv.dilate(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+            if (app.erode) {
 
+                cv.erode(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+
+            }
+            if (app.dilate) {
+
+                cv.dilate(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+
+            }
             cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
             var biggestContour = undefined;
@@ -362,8 +375,7 @@ function startTracking() {
                 try {
                     ws.send(msg);
                 } catch (e) {
-                    if(app.debugMode)
-                    {
+                    if (app.debugMode) {
                         app.error = e;
                     }
                 }
@@ -398,8 +410,7 @@ function startTracking() {
 
             setTimeout(processVideo, delay);
         } catch (err) {
-            if(app.debugMode)
-            {
+            if (app.debugMode) {
                 app.error = err;
 
             }
@@ -435,7 +446,7 @@ function loadwebcam() {
             .then(function (stream) {
                 console.log("stream:" + stream);
                 webcam = document.querySelector("#webcam");
-                console.log("webcam: "+webcam);
+                console.log("webcam: " + webcam);
 
                 webcam.srcObject = stream;
                 //var videoTrack = stream.getVideoTracks()[0];
