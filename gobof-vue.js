@@ -6,8 +6,8 @@ var high = undefined;
 var hsv = undefined;
 var fpsCounter = 0;
 
-var video = document.querySelector("#webcam");
-video.addEventListener("error", e => {
+var webcam = document.querySelector("#webcam");
+webcam.addEventListener("error", e => {
     console.log(e);
     app.error = e;
 });
@@ -136,8 +136,8 @@ var app = new Vue({
         fpsupdate: function () {
             try {
                 console.log("fpsupdate");
-                if(video == undefined) return;
-                var stream = video.srcObject
+                if(webcam == undefined) return;
+                var stream = webcam.srcObject
                 if(stream == undefined) return;
                 var streamsettings = stream.getVideoTracks()[0].getSettings();
                 streamsettings.frameRate = app.fps;
@@ -246,7 +246,7 @@ window.onerror = function (error, url, line) {
 
 function startTracking() {
 
-    video.play();
+    webcam.play();
     console.log("started tracking!");
 
     let ksize = new cv.Size(3, 3);
@@ -257,15 +257,15 @@ function startTracking() {
     let dsize = new cv.Size(h, w);
     let small = new cv.Mat(h, w, cv.CV_8UC4);
     //let video = document.getElementById('webcam');
-    let cap = new cv.VideoCapture(video);
+    let cap = new cv.VideoCapture(webcam);
 
     console.log("capturing first frame!");
 
 
     // take first frame of the video
-    let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+    let frame = new cv.Mat(webcam.height, webcam.width, cv.CV_8UC4);
     cap.read(frame);
-    hsv = new cv.Mat(video.height, video.width, cv.CV_8UC3);
+    hsv = new cv.Mat(webcam.height, webcam.width, cv.CV_8UC3);
     let dst = new cv.Mat();
 
     let contours = new cv.MatVector();
@@ -416,15 +416,15 @@ function loadwebcam() {
             .then(function (stream) {
                 console.log("stream:" + stream);
 
-                video.srcObject = stream;
+                webcam.srcObject = stream;
                 var videoTrack = stream.getVideoTracks()[0];
                 console.log(videoTrack);
-                video.play();
+                webcam.play();
 
-                video.onloadedmetadata = function (e) {
+                webcam.onloadedmetadata = function (e) {
                     console.log("stream data loaded");
-                    var w = video.videoWidth;
-                    var h = video.videoHeight;
+                    var w = webcam.videoWidth;
+                    var h = webcam.videoHeight;
                     app.webcamrealwidth = w;
                     app.webcamrealheight = h;
                     app.webcamwidth = app.webcamwidth;
