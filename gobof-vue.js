@@ -191,9 +191,16 @@ var app = new Vue({
 
             var l = localStorage;
             var a = app;
+            l.id = a.id;
             l.wsaddress = a.wsaddress;
             l.movingsensitivity = a.movingsensitivity;
             l.zsensitivity = a.zsensitivity;
+            l.yoffset = a.yoffset;
+            l.color = JSON.stringify(a.color);
+            l.fps = a.fps;
+            l.colorhuesensitivity = a.colorhuesensitivity;
+            l.colorsaturationsensitivity = a.colorsaturationsensitivity;
+            l.colorvaluesensitivity = a.colorvaluesensitivity;
 
 
         }
@@ -202,13 +209,23 @@ var app = new Vue({
 
             var a = localStorage;
             var l = app;
+            l.id = parseInt(a.id);
             l.wsaddress = a.wsaddress;
             l.movingsensitivity = parseInt(a.movingsensitivity);
             l.zsensitivity = parseInt(a.zsensitivity);
+            l.yoffset = parseInt(a.yoffset);
+            l.color = JSON.parse(a.color);
+            l.fps = parseInt(a.fps);
+            l.colorhuesensitivity = parseFloat(a.colorhuesensitivity);
+            l.colorsaturationsensitivity = parseFloat(a.colorsaturationsensitivity);
+            l.colorvaluesensitivity = parseFloat(a.colorvaluesensitivity);
 
             app.wsupdate();
 
 
+        },
+        reset: function(){
+            localStorage.clear();
         }
     }
     ,
