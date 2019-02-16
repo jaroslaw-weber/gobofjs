@@ -237,6 +237,14 @@
           </div>
 
           <div class="field">
+            <label class="label">blur strength</label>
+            <div class="control">
+              <input class="slider has-output" step="0.5" min="3" max="55" type="range" v-model.number="blurStrength">
+              <output>{{blurStrength}}</output>
+            </div>
+          </div>
+
+          <div class="field">
             <label class="label">debug mode</label>
             <p class="help">warning! this may cause worse performance</p>
             <input class="checkbox" type="checkbox" v-model="debugMode">

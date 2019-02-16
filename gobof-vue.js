@@ -50,6 +50,7 @@ var app = new Vue({
         webcamOn: false,
 
         webcamwidth: 100,
+        blurStrength: 4,
 
         webcamrealheight: 100,
         webcamrealwidth: 100,
@@ -265,7 +266,7 @@ function startTracking() {
     webcam.play();
     console.log("started tracking!");
 
-    let ksize = new cv.Size(3, 3);
+    let ksize = new cv.Size(app.blurStrength, app.blurStrength);
     let M = cv.Mat.ones(3, 3, cv.CV_8U);
     let anchor = new cv.Point(-1, -1);
     var h = app.webcamheight;
