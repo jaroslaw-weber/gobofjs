@@ -334,7 +334,7 @@ function startTracking() {
                 var distance = (rect.width * app.focallength) / w;
                 //console.log("distance: "+distance);
                 var x = - xpercent * app.movingsensitivity
-                var y = - ypercent * app.movingsensitivity + yoffset;
+                var y = - ypercent * app.movingsensitivity + app.yoffset;
                 var z = app.zsensitivity * distance;
                 if (!app.ztracking) {
                     z = 0;
