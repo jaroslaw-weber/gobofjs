@@ -37,6 +37,7 @@ var app = new Vue({
         ztracking: true,
         focallength: 0.4,
         movingsensitivity: 10,
+        zoffset: 0,
         yoffset: 0,
         zsensitivity: 100,
         targetwidth: 5,
@@ -366,7 +367,7 @@ function startTracking() {
                 //console.log("distance: "+distance);
                 var x = - xpercent * app.movingsensitivity
                 var y = - ypercent * app.movingsensitivity + app.yoffset;
-                var z = app.zsensitivity * distance;
+                var z = app.zsensitivity * distance + app.zoffset;
                 if (!app.ztracking) {
                     z = 0;
                 }
