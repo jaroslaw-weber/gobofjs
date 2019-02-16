@@ -26,7 +26,7 @@ var app = new Vue({
         id: 1,
         debugMode: false,
         isLoading: true,
-        useBlur: false,
+        useBlur: true,
         useErode: false,
         useDilate: false,
         wsaddress: "ws://localhost:8765/",
