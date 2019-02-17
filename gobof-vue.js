@@ -19,7 +19,6 @@ var app = new Vue({
     el: '#tracking',
     components: {
         'compact-picker': VueColor.Compact,
-        //'sketch-picker': VueColor.Sketch,
 
     },
     data: {
@@ -29,10 +28,12 @@ var app = new Vue({
         useBlur: true,
         useErode: false,
         useDilate: false,
+        erodeDilateStrength: 3,
         wsaddress: "ws://localhost:8765/",
         colorhuesensitivity: 0.1,
         colorsaturationsensitivity: 0.4,
         colorvaluesensitivity: 0.4,
+
 
         ztracking: true,
         focallength: 0.4,
@@ -43,10 +44,8 @@ var app = new Vue({
         targetwidth: 5,
         fps: 72,
         fpscolor: "gray",
-        //buttontext
         isTracking: false,
         colors: { hsv: { h: 50, s: 0.5, v: 0.5 } },
-        //is webcam streaming?
         webcamOn: false,
 
         webcamwidth: 100,
@@ -56,6 +55,7 @@ var app = new Vue({
         webcamrealwidth: 100,
         trackerscale: 1,
         error: "",
+        exported: "",
         wasmloaded: false,
         webcamloaded: false,
         advanced: false,
@@ -65,6 +65,10 @@ var app = new Vue({
         loadingText: "loading",
     },
     computed: {
+        backgroundcolor: function () {
+            return tinycolor(this.colors.hsv).toHexString();
+
+        },
         userFriendlyError: function () {
             //if(this.error.includes("1006")) return "could not connect to your headset. run the game before connecting. and check if ip address is correct.";
             return this.error;
@@ -193,6 +197,9 @@ var app = new Vue({
         }
         ,
         save: function () {
+            var settings = JSON.stringify(app.$data);
+            localStorage.settings = settings;
+            /*
 
             var l = localStorage;
             var a = app;
@@ -202,33 +209,46 @@ var app = new Vue({
             l.zsensitivity = a.zsensitivity;
             l.yoffset = a.yoffset;
             l.color = JSON.stringify(a.color);
+
             l.fps = a.fps;
             l.colorhuesensitivity = a.colorhuesensitivity;
             l.colorsaturationsensitivity = a.colorsaturationsensitivity;
             l.colorvaluesensitivity = a.colorvaluesensitivity;
 
+            */
 
         }
         ,
         load: function () {
+            var settings = JSON.parse(localStorage.settings);
+            app.$data = settings;
 
-            var a = localStorage;
-            var l = app;
-            l.id = parseInt(a.id);
-            l.wsaddress = a.wsaddress;
-            l.movingsensitivity = parseInt(a.movingsensitivity);
-            l.zsensitivity = parseInt(a.zsensitivity);
-            l.yoffset = parseInt(a.yoffset);
-            l.color = JSON.parse(a.color);
-            l.fps = parseInt(a.fps);
-            l.colorhuesensitivity = parseFloat(a.colorhuesensitivity);
-            l.colorsaturationsensitivity = parseFloat(a.colorsaturationsensitivity);
-            l.colorvaluesensitivity = parseFloat(a.colorvaluesensitivity);
-
+            for (var key in settings) {
+                if (key == "wasmloaded" || key == "isLoading" || key == "webcamloaded") {
+                    continue;
+                }
+                console.log(key);
+                try {
+                    app.$data[key] = settings[key];
+                }
+                catch (e) {
+                    app.error = e;
+                }
+            }
             app.wsupdate();
 
 
         },
+
+        exportSettings: function () {
+
+
+            var asJson = JSON.stringify(app.$data, null, "\t");
+            app.exported = asJson;
+
+
+        },
+
         reset: function () {
             localStorage.clear();
         }
@@ -267,7 +287,7 @@ function startTracking() {
     console.log("started tracking!");
 
     let ksize = new cv.Size(app.blurStrength, app.blurStrength);
-    let M = cv.Mat.ones(3, 3, cv.CV_8U);
+    let M = cv.Mat.ones(app.erodeDilateStrength, app.erodeDilateStrength, cv.CV_8U);
     let anchor = new cv.Point(-1, -1);
     var h = app.webcamheight;
     var w = app.webcamwidth;
@@ -493,6 +513,6 @@ if (localStorage.wsaddress) {
 }
 
 //ok so the problem was loadwebcam was called too late maybe...
-loadwebcam();
+//loadwebcam();
 
 //app.isLoading = false;
