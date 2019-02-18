@@ -14,11 +14,31 @@ webcam.addEventListener("error", e => {
 let canvasOutput = document.getElementById('canvasOutput');
 let canvasContext = canvasOutput.getContext('2d');
 
+const Slider = Vue.component('slider', {
+    data: function () {
+        return {
+            value: 0
+        }
+    },
+    props: ['label', 'help', 'step', 'min', 'max'],
+    template: `
+    <div class="field">
+        <label class="label">{{label}}</label>
+        <p class="help">{{help}}</p>
+        <div class="control">
+        <input class="slider has-output" v-bind:step="step" v-bind:min="min" v-bind:max="max" type="range"
+            v-model.number="value">
+        <output>{{value}}</output>
+        </div>
+    </div>`
+})
+
 
 var app = new Vue({
     el: '#tracking',
     components: {
         'compact-picker': VueColor.Compact,
+        'slider': Slider,
 
     },
     data: {
@@ -63,6 +83,7 @@ var app = new Vue({
         wsstatus: "not connected :(",
         wsstatuscolor: "red",
         loadingText: "loading",
+        testSliderValue: 0.2,
     },
     computed: {
         backgroundcolor: function () {
@@ -199,23 +220,6 @@ var app = new Vue({
         save: function () {
             var settings = JSON.stringify(app.$data);
             localStorage.settings = settings;
-            /*
-
-            var l = localStorage;
-            var a = app;
-            l.id = a.id;
-            l.wsaddress = a.wsaddress;
-            l.movingsensitivity = a.movingsensitivity;
-            l.zsensitivity = a.zsensitivity;
-            l.yoffset = a.yoffset;
-            l.color = JSON.stringify(a.color);
-
-            l.fps = a.fps;
-            l.colorhuesensitivity = a.colorhuesensitivity;
-            l.colorsaturationsensitivity = a.colorsaturationsensitivity;
-            l.colorvaluesensitivity = a.colorvaluesensitivity;
-
-            */
 
         }
         ,
@@ -384,7 +388,9 @@ function startTracking() {
                 var xpercent = canvasX / w - 0.5;
                 var ypercent = canvasY / h - 0.5;
 
-                var distance = (rect.width * app.focallength) / w;
+                var distance1 = (rect.width * app.focallength) / w;
+                var distance2 = (rect.height * app.focallength) / h;
+                var distance = (distance1 + distance2) / 2;
                 //console.log("distance: "+distance);
                 var x = - xpercent * app.movingsensitivity
                 var y = - ypercent * app.movingsensitivity + app.yoffset;
