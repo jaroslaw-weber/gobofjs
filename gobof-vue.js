@@ -15,16 +15,14 @@ let canvasOutput = document.getElementById('canvasOutput');
 let canvasContext = canvasOutput.getContext('2d');
 
 const Slider = Vue.component('slider', {
-     
-    
-    props: ['slider-value', label', 'help', 'step', 'min', 'max'],
+    props: ['value', 'label', 'help', 'step', 'min', 'max'],
     template: `
     <div class="field">
         <label class="label">{{label}}</label>
         <p class="help">{{help}}</p>
         <div class="control">
         <input class="slider has-output" v-bind:step="step" v-bind:min="min" v-bind:max="max" type="range"
-            v-bind:value="slider-value" v-on:input="$emit('input', $event.target.value)">
+            v-bind:value="value" v-on:input="$emit('input', $event.target.value)">
         <output>{{value}}</output>
         </div>
     </div>`
@@ -36,7 +34,6 @@ var app = new Vue({
     components: {
         'compact-picker': VueColor.Compact,
         'slider': Slider,
-
     },
     data: {
         id: 1,
@@ -50,6 +47,7 @@ var app = new Vue({
         colorhuesensitivity: 0.1,
         colorsaturationsensitivity: 0.4,
         colorvaluesensitivity: 0.4,
+        showTrackerRect: true,
 
 
         ztracking: true,
@@ -81,6 +79,10 @@ var app = new Vue({
         wsstatuscolor: "red",
         loadingText: "loading",
         testSliderValue: 0.2,
+        biggestContour: false,
+        contoursCount: 0,
+        //counting contours flag. if used per frame will kill the performance
+        contoursCheckFlag: false,
     },
     computed: {
         backgroundcolor: function () {
@@ -132,7 +134,7 @@ var app = new Vue({
         },
         highv: function () {
             var x = this.colors.hsv.v;
-            console.log(this.colors.hsv);
+            //console.log(this.colors.hsv);
             var r = (x * 255) + (this.colorvaluesensitivity * 255);
             if (r > 255) return 255;
             return parseInt(r);
@@ -153,6 +155,10 @@ var app = new Vue({
         }
     },
     methods: {
+        countcontours: function () {
+            app.contoursCheckFlag = true;
+
+        },
 
         toggleTracking: function () {
             app.isTracking = !app.isTracking;
@@ -352,27 +358,39 @@ function startTracking() {
             var biggestContour = undefined;
             //var biggestarea = undefined
             var biggestContourIndex = -1;
-            /*
-            for (var i = 0; i < contours.size(); i++) {
+
+            if(app.contoursCheckFlag)
+            {
+                app.contoursCount = contours.size();
+                app.contoursCheckFlag = false;
+            }
+
+            if (app.biggestContour) {
+                for (var i = 0; i < contours.size(); i++) {
 
 
-                let contour = contours.get(i);
-                if (biggestContour == undefined) {
-                    biggestContour = contour;
-                    biggestarea = cv.contourArea(contour, false);
-                    continue;
+                    let contour = contours.get(i);
+                    if (biggestContour == undefined) {
+                        biggestContour = contour;
+                        biggestarea = cv.contourArea(contour, false);
+                        continue;
+                    }
+
+                    let area = cv.contourArea(contour, false);
+                    if (area > biggestarea) {
+                        biggestContour = contour;
+                        biggestarea = area;
+                        biggestContourIndex = i;
+                    }
+                };
+
+            }
+            else {
+                if (contours.size() >= 1) {
+                    biggestContourIndex = 0;
+                    biggestContour = contours.get(0);
+
                 }
-
-                let area = cv.contourArea(contour, false);
-                if (area > biggestarea) {
-                    biggestContour = contour;
-                    biggestarea = area;
-                    biggestContourIndex = i;
-                }
-            };*/
-            if (contours.size() >= 1) {
-                biggestContourIndex = 0;
-                biggestContour = contours.get(0);
 
             }
 
@@ -380,6 +398,11 @@ function startTracking() {
 
             if (biggestContourIndex >= 0) {
                 let rect = cv.boundingRect(biggestContour);
+                if (app.showTrackerRect) {
+                    var trackWindow = rect;
+                    let [_x, _y, _w, _h] = [trackWindow.x, trackWindow.y, trackWindow.width, trackWindow.height];
+                    cv.rectangle(dst, new cv.Point(_x, _y), new cv.Point(_x + _w, _y + _h), [255, 0, 0, 255], 2);
+                }
                 var canvasX = rect.x;
                 var canvasY = rect.y;
                 var xpercent = canvasX / w - 0.5;

@@ -212,6 +212,7 @@
               <output>{{focallength}}</output>
             </div>
           </div>
+          <!-- todo: refactor all sliders using slider component -->
           <div class="field">
             <label class="label">target width</label>
             <p class="help">width of the object you detecting (cm)</p>
@@ -230,63 +231,20 @@
           </div>
 
 
-          <div class="field">
-            <label class="label">movement sensitivity</label>
-            <p class="help" sensitivity for x and y axis></p>
-            <div class="control">
-              <input class="slider has-output" step="1" min="0" max="200" type="range"
-                v-model.number="movingsensitivity">
-              <output>{{movingsensitivity}}</output>
-            </div>
-          </div>
+          <slider v-model.number="movingsensitivity" label="movement sensitivity"
+           help="sensitivity for x and y axis" step="1" min="0" max="200"></slider>
 
-          <div class="field">
-            <label class="label">z axis sensitivity</label>
-            <p class="help">sensitivity for z axis</p>
-            <div class="control">
-              <input class="slider has-output" step="1" min="0" max="300" type="range" v-model.number="zsensitivity">
-              <output>{{zsensitivity}}</output>
-            </div>
-          </div>
+          <slider v-model.number="zsensitivity" label="z axis sensitivity"
+           help="sensitivity for z axis" step="1" min="0" max="300"></slider>
 
+          <slider v-model.number="zoffset" label="z axis offset"
+           help="default Z position" step="0.5" min="-50" max="50"></slider>
 
-          <div class="field">
-            <label class="label">yoffset</label>
-            <p class="help">too high or too low? adjust</p>
-            <div class="control">
-              <input class="slider has-output" step="0.5" min="-50" max="50" type="range" v-model.number="yoffset">
-              <output>{{yoffset}}</output>
-            </div>
-          </div>
+          <slider v-model.number="blurStrength" label="blur strength"
+          help="jittery? try blurring the image" step="1" min="3" max="55"></slider>
 
-          <div class="field">
-            <label class="label">zoffset</label>
-
-            <p class="help">set default Z position</p>
-            <div class="control">
-              <input class="slider has-output" step="0.5" min="-50" max="50" type="range" v-model.number="zoffset">
-              <output>{{zoffset}}</output>
-            </div>
-          </div>
-
-          <div class="field">
-            <label class="label">blur strength</label>
-            <p class="help">jittery? try blurring the image</p>
-            <div class="control">
-              <input class="slider has-output" step="1" min="3" max="55" type="range" v-model.number="blurStrength">
-              <output>{{blurStrength}}</output>
-            </div>
-          </div>
-
-          <div class="field">
-            <label class="label">erode/dilate strength</label>
-            <p class="help">this works similar to blur.</p>
-            <div class="control">
-              <input class="slider has-output" step="1" min="3" max="20" type="range"
-                v-model.number="erodeDilateStrength">
-              <output>{{erodeDilateStrength}}</output>
-            </div>
-          </div>
+          <slider v-model.number="erodeDilateStrength" label="erode/dilate strength"
+          help="similar to blur" step="1" min="3" max="20"></slider>
 
           <div class="field">
             <label class="label">debug mode</label>
@@ -307,8 +265,15 @@
             <label class="label">dilate</label>
             <input class="checkbox" type="checkbox" v-model="useDilate">
           </div>
-          <slider v-model="testSliderValue" label="Test slider" help="test help" step="0.1" min="0.0" max="1.0"></slider>
+          <div class="field">
+            <label class="label">biggest contour</label>
+            <input class="checkbox" type="checkbox" v-model="biggestContour">
+          </div>
 
+          <button class="button" v-on:click="countcontours()">count objects</button>
+          <p>
+            object count: {{contoursCount}}
+          </p>
 
 
         </div>
