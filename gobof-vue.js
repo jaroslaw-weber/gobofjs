@@ -15,19 +15,16 @@ let canvasOutput = document.getElementById('canvasOutput');
 let canvasContext = canvasOutput.getContext('2d');
 
 const Slider = Vue.component('slider', {
-    data: function () {
-        return {
-            value: 0
-        }
-    },
-    props: ['label', 'help', 'step', 'min', 'max'],
+     
+    
+    props: ['slider-value', label', 'help', 'step', 'min', 'max'],
     template: `
     <div class="field">
         <label class="label">{{label}}</label>
         <p class="help">{{help}}</p>
         <div class="control">
         <input class="slider has-output" v-bind:step="step" v-bind:min="min" v-bind:max="max" type="range"
-            v-model.number="value">
+            v-bind:value="slider-value" v-on:input="$emit('input', $event.target.value)">
         <output>{{value}}</output>
         </div>
     </div>`
