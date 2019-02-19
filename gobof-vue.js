@@ -417,13 +417,12 @@ function startTracking() {
                 var distance1 = (rect.width * app.focallength) / w;
                 var distance2 = (rect.height * app.focallength) / h;
                 var distance = (distance1 + distance2) / 2;
+                var radius = rect.width + rect/height;
                 //console.log("distance: "+distance);
                 var x = - xpercent * app.movingsensitivity
                 var y = - ypercent * app.movingsensitivity + app.yoffset;
-                var z = app.zsensitivity * distance + app.zoffset;
-                if (!app.ztracking) {
-                    z = 0;
-                }
+                //var z = app.zsensitivity * distance + app.zoffset;
+                var z = app.zsensitivity * radius + app.zoffset;
                 var msg = app.id + "," + x + "," + y + "," + z;
                 //console.log(msg);
                 try {
