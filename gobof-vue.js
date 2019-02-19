@@ -60,7 +60,7 @@ var app = new Vue({
         fps: 72,
         fpscolor: "gray",
         isTracking: false,
-        colors: { hsv: { h: 50, s: 0.5, v: 0.5 } },
+        colors: { hsv: { h: 80, s: 0.65, v: 0.96 } },
         webcamOn: false,
 
         webcamwidth: 100,
@@ -83,8 +83,14 @@ var app = new Vue({
         contoursCount: 0,
         //counting contours flag. if used per frame will kill the performance
         contoursCheckFlag: false,
+        showVideos: true
     },
     computed: {
+        videosVisibilityClass: function() {
+            if(this.showVideos) return "is-visible";
+            return "is-invisible";
+
+        },
         backgroundcolor: function () {
             return tinycolor(this.colors.hsv).toHexString();
 

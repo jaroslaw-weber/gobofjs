@@ -5,9 +5,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gobof.js - 6dof tracking in browser</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+  <link rel="stylesheet" href="./bulma-pageloader.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
   <link rel="stylesheet" href="./bulma-slider.min.css">
-  <link rel="stylesheet" href="./bulma-pageloader.min.css">
   <style>
     .slider {
       width: calc(100% - (5.2rem)) !important;
@@ -15,6 +16,14 @@
 
     output {
       width: 4rem !important;
+    }
+
+    .rounded-corners {
+      border-radius: 6px;
+    }
+
+    .is-invisible {
+      display: none;
     }
   </style>
 </head>
@@ -33,26 +42,33 @@
       <br>
 
       <div id="simple">
+        <br>
+        <div v-bind:class="videosVisibilityClass">
+          <div class="box">
 
-        <div class="box">
+            <div class="content">
+              <p>your webcam</p>
+            </div>
+            <video id="webcam" v-bind:width="webcamwidth" v-bind:class="videosVisibilityClass"
+              v-bind:height="webcamheight" autoplay muted>
 
-          <div class="content">
-            <p>your webcam</p>
+
+              Your browser does not support the video tag.
+            </video>
+
           </div>
-          <video id="webcam" v-bind:width="webcamwidth" v-bind:height="webcamheight" autoplay muted>
-
-
-            Your browser does not support the video tag.
-          </video>
-
         </div>
+        <br>
 
-        <div class="box">
-          <div class="content">
-            <p>tracking</p>
+        <div v-bind:class="videosVisibilityClass">
+          <div class="box">
+            <div class="content">
+              <p>tracking</p>
+            </div>
+            <canvas id="canvasOutput" v-bind:width="trackerwidth" v-bind:height="trackerheight" muted></canvas>
           </div>
-          <canvas id="canvasOutput" v-bind:width="trackerwidth" v-bind:height="trackerheight" muted></canvas>
         </div>
+        <br>
         <div class="columns">
 
           <div class="column">
@@ -62,6 +78,9 @@
               </button>
               <button class="button is-primary" v-on:click="toggleTracking()" :disabled="!wasmloaded">
                 {{trackingButton}}
+              </button>
+              <button class="button is-primary" v-on:click="toggleTracking()" :disabled="!wasmloaded">
+                apply changes
               </button>
             </div>
           </div>
@@ -112,24 +131,28 @@
         </div>
       </div>
       <hr>
-      <div id="advanced">
+      <div>
         <div id="settings">
 
 
           <div>
             <label class="label">color</label>
             <br>
-            <div v-bind:style="{background: backgroundcolor}">{{backgroundcolor}}</div>
-            <br>
-            <div>
-              <compact-picker v-model="colors"></compact-picker>
+            <div class="columns">
+              <div class="column">
+                <compact-picker v-model="colors"></compact-picker>
+              </div>
+              <div class="column">
+                <label class="label">hsv range</label>
+                <p> low: {{lowh}}, {{lows}}, {{lowv}}</p>
+                <p> high: {{highh}}, {{highs}}, {{highv}}</p>
+              </div>
             </div>
-            <br>
-            <label class="label">hsv range</label>
-            <p> low: {{lowh}}, {{lows}}, {{lowv}}</p>
-            <p> high: {{highh}}, {{highs}}, {{highv}}</p>
-            <br>
+
           </div>
+          <br>
+          <div class="rounded-corners" v-bind:style="{background: backgroundcolor}">&nbsp;</div>
+          <br>
 
           <div class="field">
             <label class="label">hsv</label>
@@ -147,34 +170,16 @@
               <output>{{colors.hsv.v}}</output>
             </div>
           </div>
+          <div v-if="advanced">
 
+            <slider v-model.number="colorhuesensitivity" label="hue sensitivity"
+              help="different values for different colors" step="0.02" min="0" max="1"></slider>
 
-          <div class="field">
-            <label class="label">hue sensitivity</label>
-            <p class="help">color sensitivity</p>
-            <div class="control">
-              <input class="slider has-output" step="0.02" min="0" max="0.6" type="range"
-                v-model.number="colorhuesensitivity">
-              <output>{{colorhuesensitivity}}</output>
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">saturation sensitivity</label>
-            <p class="help">color sensitivity</p>
-            <div class="control">
-              <input class="slider has-output" step="0.02" min="0" max="1" type="range"
-                v-model.number="colorsaturationsensitivity">
-              <output>{{colorsaturationsensitivity}}</output>
-            </div>
-          </div>
-          <div class="field">
-            <label class="label">value sensitivity</label>
-            <p class="help">color sensitivity</p>
-            <div class="control">
-              <input class="slider has-output" step="0.02" min="0" max="1" type="range"
-                v-model.number="colorvaluesensitivity">
-              <output>{{colorvaluesensitivity}}</output>
-            </div>
+            <slider v-model.number="colorsaturationsensitivity" label="saturation sensitivity"
+              help="saturated color is 1, grey is 0" step="0.02" min="0" max="1"></slider>
+
+            <slider v-model.number="colorvaluesensitivity" label="value sensitivity" help="bright is 1, dark is 0"
+              step="0.02" min="0" max="1"></slider>
           </div>
           <hr>
 
@@ -196,84 +201,93 @@
               </label>
             </div>
           </div>
-          <div class="field">
-            <label class="label">fps</label>
-            <div class="control">
-              <input class="slider has-output" step="1" min="30" max="120" type="range" v-model.number="fps">
-              <output> {{fps}} </output>
+          <br>
+
+
+          <slider v-model.number="movingsensitivity" label="movement sensitivity" help="sensitivity for x and y axis"
+            step="1" min="0" max="200"></slider>
+
+          <slider v-model.number="zsensitivity" label="z axis sensitivity" help="sensitivity for z axis" step="1"
+            min="0" max="300"></slider>
+
+          <slider v-model.number="yoffset" label="y axis offset" help="default Y position" step="0.5" min="-50"
+            max="50"></slider>
+          <slider v-model.number="zoffset" label="z axis offset" help="default Z position" step="0.5" min="-50"
+            max="50"></slider>
+
+          <hr>
+          <br>
+
+          <button v-if="!advanced" class="button" @click="advanced=true">more settings</button>
+
+          <hr v-if="!advanced">
+          <!-- below are advanced settings -->
+          <div v-if="advanced">
+            <div class="field">
+              <label class="label">resolution</label>
+              <p class="help">{{webcamwidth}} x {{webcamheight}}</p>
+              <div class="control">
+                <input class="slider has-output" step="1" min="50" max="400" type="range" v-model.number="webcamwidth">
+                <output>{{webcamwidth}}</output>
+              </div>
             </div>
-          </div>
-          <div class="field">
-            <label class="label">focal length</label>
-            <p class="help">differs for different cameras</p>
-            <div class="control">
-              <input class="slider has-output" step="0.05" min="0.1" max="0.7" type="range"
-                v-model.number="focallength">
-              <output>{{focallength}}</output>
+
+            <slider v-model.number="fps" label="fps"
+              help="be careful not to set it too high or too low. adjust depending on the performance" step="1" min="30"
+              max="120"></slider>
+
+
+            <slider v-model.number="blurStrength" label="blur strength" help="jittery? try blurring the image" step="1"
+              min="3" max="55"></slider>
+
+            <slider v-model.number="erodeDilateStrength" label="erode/dilate strength" help="similar to blur" step="1"
+              min="3" max="20"></slider>
+            <br>
+
+            <div class="field">
+              <label class="label">blur</label>
+              <input class="checkbox" type="checkbox" v-model="useBlur">
             </div>
-          </div>
-          <!-- todo: refactor all sliders using slider component -->
-          <div class="field">
-            <label class="label">target width</label>
-            <p class="help">width of the object you detecting (cm)</p>
-            <div class="control">
-              <input class="slider has-output" step="0.1" min="1" max="40" type="range" v-model.number="targetwidth">
-              <output>{{targetwidth}}</output>
+            <div class="field">
+              <label class="label">erode</label>
+              <input class="checkbox" type="checkbox" v-model="useErode">
             </div>
-          </div>
-          <div class="field">
-            <label class="label">resolution</label>
-            <p class="help">{{webcamwidth}} x {{webcamheight}}</p>
-            <div class="control">
-              <input class="slider has-output" step="1" min="50" max="400" type="range" v-model.number="webcamwidth">
-              <output>{{webcamwidth}}</output>
+            <div class="field">
+              <label class="label">dilate</label>
+              <input class="checkbox" type="checkbox" v-model="useDilate">
             </div>
+            <div class="field">
+              <label class="label">biggest contour</label>
+              <input class="checkbox" type="checkbox" v-model="biggestContour">
+            </div>
+            <div class="field">
+              <label class="label">show webcam and tracker</label>
+              <input class="checkbox" type="checkbox" v-model="showVideos">
+            </div>
+            <br>
+            <div>
+              <button class="button" v-on:click="countcontours()">count objects</button>
+              <br>
+              <br>
+              <p>
+                object count: {{contoursCount}}
+              </p>
+            </div>
+            <br>
+            <div class="field">
+              <label class="label">debug mode</label>
+              <p class="help">warning! this may cause worse performance</p>
+              <input class="checkbox" type="checkbox" v-model="debugMode">
+            </div>
+            <br>
+
+            <slider v-model.number="focallength" label="focal length" help="differs for different cameras" step="0.05"
+              min="0.1" max="0.7"></slider>
+
+            <slider v-model.number="targetwidth" label="target width" help="width of the object you detecting (cm)"
+              step="0.1" min="1" max="40"></slider>
+
           </div>
-
-
-          <slider v-model.number="movingsensitivity" label="movement sensitivity"
-           help="sensitivity for x and y axis" step="1" min="0" max="200"></slider>
-
-          <slider v-model.number="zsensitivity" label="z axis sensitivity"
-           help="sensitivity for z axis" step="1" min="0" max="300"></slider>
-
-          <slider v-model.number="zoffset" label="z axis offset"
-           help="default Z position" step="0.5" min="-50" max="50"></slider>
-
-          <slider v-model.number="blurStrength" label="blur strength"
-          help="jittery? try blurring the image" step="1" min="3" max="55"></slider>
-
-          <slider v-model.number="erodeDilateStrength" label="erode/dilate strength"
-          help="similar to blur" step="1" min="3" max="20"></slider>
-
-          <div class="field">
-            <label class="label">debug mode</label>
-            <p class="help">warning! this may cause worse performance</p>
-            <input class="checkbox" type="checkbox" v-model="debugMode">
-          </div>
-
-
-          <div class="field">
-            <label class="label">blur</label>
-            <input class="checkbox" type="checkbox" v-model="useBlur">
-          </div>
-          <div class="field">
-            <label class="label">erode</label>
-            <input class="checkbox" type="checkbox" v-model="useErode">
-          </div>
-          <div class="field">
-            <label class="label">dilate</label>
-            <input class="checkbox" type="checkbox" v-model="useDilate">
-          </div>
-          <div class="field">
-            <label class="label">biggest contour</label>
-            <input class="checkbox" type="checkbox" v-model="biggestContour">
-          </div>
-
-          <button class="button" v-on:click="countcontours()">count objects</button>
-          <p>
-            object count: {{contoursCount}}
-          </p>
 
 
         </div>
@@ -295,7 +309,6 @@
 
     <script src="./umbrella.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <script src="./vue-color/vue-color.min.js"></script>
     <script src="http://bgrins.github.io/TinyColor/tinycolor.js"></script>
 
