@@ -417,7 +417,7 @@ function startTracking() {
                 var distance1 = (rect.width * app.focallength) / w;
                 var distance2 = (rect.height * app.focallength) / h;
                 var distance = (distance1 + distance2) / 2;
-                var radius = rect.width + rect/height;
+                var radius = rect.width + rect.height;
                 //console.log("distance: "+distance);
                 var x = - xpercent * app.movingsensitivity
                 var y = - ypercent * app.movingsensitivity + app.yoffset;
