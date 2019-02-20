@@ -227,7 +227,7 @@
               <label class="label">resolution</label>
               <p class="help">{{webcamwidth}} x {{webcamheight}}</p>
               <div class="control">
-                <input class="slider has-output" step="1" min="50" max="400" type="range" v-model.number="webcamwidth">
+                <input class="slider has-output" step="1" min="50" max="1000" type="range" v-model.number="webcamwidth">
                 <output>{{webcamwidth}}</output>
               </div>
             </div>
@@ -263,6 +263,10 @@
             <div class="field">
               <label class="label">show webcam and tracker</label>
               <input class="checkbox" type="checkbox" v-model="showVideos">
+            </div>
+            <div class="field">
+              <label class="label">show tracker rect</label>
+              <input class="checkbox" type="checkbox" v-model="showTrackerRect">
             </div>
             <br>
             <div>
@@ -318,10 +322,12 @@
       //todo: reupload
       //opencv with WASM (faster and smaller)
 
+      
       var Module = {
         wasmBinaryFile: 'https://jaroslaw-weber.github.io/gobofjs/opencv/opencv_js.wasm',
         _main: function () { opencvIsReady(); }
       };
+      
 
 
     </script>

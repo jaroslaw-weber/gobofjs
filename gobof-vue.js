@@ -39,7 +39,7 @@ var app = new Vue({
         id: 1,
         debugMode: false,
         isLoading: true,
-        useBlur: true,
+        useBlur: false,
         useErode: false,
         useDilate: false,
         erodeDilateStrength: 3,
@@ -63,7 +63,7 @@ var app = new Vue({
         colors: { hsv: { h: 80, s: 0.65, v: 0.96 } },
         webcamOn: false,
 
-        webcamwidth: 100,
+        webcamwidth: 200,
         blurStrength: 4,
 
         webcamrealheight: 100,
@@ -340,14 +340,13 @@ function startTracking() {
 
             cap.read(frame);
             //console.log("reading next frame");
-            cv.resize(frame, small, dsize, 0, 0, cv.INTER_NEAREST);
+            //cv.resize(frame, small, dsize, 0, 0, cv.INTER_NEAREST);
             if (app.useBlur) {
 
-                cv.blur(small, small, ksize, anchor, cv.BORDER_DEFAULT);
+                cv.blur(frame, frame, ksize, anchor, cv.BORDER_DEFAULT);
             }
 
-            cv.cvtColor(small, hsv, cv.COLOR_RGBA2RGB);
-            cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
+            cv.cvtColor(frame, hsv, cv.COLOR_RGB2HSV);
             cv.inRange(hsv, low, high, dst);
             if (app.erode) {
 
@@ -414,9 +413,9 @@ function startTracking() {
                 var xpercent = canvasX / w - 0.5;
                 var ypercent = canvasY / h - 0.5;
 
-                var distance1 = (rect.width * app.focallength) / w;
-                var distance2 = (rect.height * app.focallength) / h;
-                var distance = (distance1 + distance2) / 2;
+                //var distance1 = (rect.width * app.focallength) / w;
+                //var distance2 = (rect.height * app.focallength) / h;
+                //var distance = (distance1 + distance2) / 2;
                 var screenSize = (w+h)/2;
                 var radius = rect.width + rect.height;
                 //console.log("distance: "+distance);
@@ -440,7 +439,11 @@ function startTracking() {
 
 
             //cv.imshow('trackingCheck', small);
-            cv.imshow('canvasOutput', dst);
+            if(app.showVideos)
+            {
+                
+                cv.imshow('canvasOutput', dst);
+            }
 
             // schedule the next one.
             let delay = 1000 / app.fps - (Date.now() - begin);
