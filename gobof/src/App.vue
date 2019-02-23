@@ -7,10 +7,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gobof.js - 6dof tracking in browser</title>
-  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-  <link rel="stylesheet" href="./bulma-pageloader.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
-  <link rel="stylesheet" href="./bulma-slider.min.css">
   <style>
     .slider {
       width: calc(100% - (5.2rem)) !important;
@@ -311,30 +307,6 @@
         </div>
       </div>
     </div>
-
-
-    <script src="./umbrella.min.js"></script>
-
-    <script src="./vue-color/vue-color.min.js"></script>
-    <script src="http://bgrins.github.io/TinyColor/tinycolor.js"></script>
-
-    <script src="./gobof-vue.js" type="text/javascript"></script>
-
-    <script>
-      //todo: reupload
-      //opencv with WASM (faster and smaller)
-
-      
-      var Module = {
-        wasmBinaryFile: 'https://jaroslaw-weber.github.io/gobofjs/opencv/opencv_js.wasm',
-        _main: function () { opencvIsReady(); }
-      };
-      
-
-
-    </script>
-    <script src="./opencv/opencv.js"></script>
-    <script src="./tinycolor.js"></script>
 
     </div>
   </section>
