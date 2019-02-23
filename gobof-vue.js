@@ -358,11 +358,12 @@ function startTracking() {
                 cv.dilate(dst, dst, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
 
             }
-            cv.findContours(dst, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+            cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
             var biggestContour = undefined;
-            //var biggestarea = undefined
+            var biggestarea = undefined;
             var biggestContourIndex = -1;
+            
 
             if(app.contoursCheckFlag)
             {
@@ -371,17 +372,22 @@ function startTracking() {
             }
 
             if (app.biggestContour) {
+                //console.log("biggest contour");
                 for (var i = 0; i < contours.size(); i++) {
 
 
                     let contour = contours.get(i);
+                    let contourRect = cv.boundingRect(contour);
+                    let area = contourRect.width * contourRect.height;
+                    //console.log("area");
+                
+
                     if (biggestContour == undefined) {
                         biggestContour = contour;
-                        biggestarea = cv.contourArea(contour, false);
+                        biggestarea = area;
                         continue;
                     }
 
-                    let area = cv.contourArea(contour, false);
                     if (area > biggestarea) {
                         biggestContour = contour;
                         biggestarea = area;
