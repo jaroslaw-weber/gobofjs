@@ -25,7 +25,7 @@ var Module = {
 };
 
 import Slider from "./components/Slider.vue";
-import cv from "../opencv/opencv.js";
+//import cv from "../opencv/opencv.js";
 
 var processedFrames = 0;
 var start = Date.now();
