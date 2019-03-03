@@ -16,86 +16,82 @@
 </template>
 
 <script>
-var Module = {
-  wasmBinaryFile:
-    "https://jaroslaw-weber.github.io/gobofjs/opencv/opencv_js.wasm",
-  _main: function() {
-    opencvIsReady();
-  }
-};
-
 import Slider from "./components/Slider.vue";
-//import cv from "../opencv/opencv.js";
-
-var processedFrames = 0;
-var start = Date.now();
-var low = undefined;
-var high = undefined;
-var hsv = undefined;
-var fpsCounter = 0;
-
-var webcam = document.querySelector("#webcam");
-webcam.addEventListener("error", e => {
-  console.log(e);
-  this.error = e;
-});
-let canvasOutput = document.getElementById("canvasOutput");
-let canvasContext = canvasOutput.getContext("2d");
+import Header from "./components/Header.vue";
+import Pageloader from "./components/Pageloader.vue";
+import Webcam from "./components/Webcam.vue";
+import Tracker from "./components/Tracker.vue";
+import Error from "./components/Error.vue";
+import Config from "./components/Config.vue";
+import Color from "./components/Color.vue";
+import Sensitivity from "./components/Sensitivity.vue";
+import Offset from "./components/Offset.vue";
 
 export default {
   name: "app",
   components: {
-    "compact-picker": VueColor.Compact,
-    slider: Slider
+    //    "compact-picker": VueColor.Compact,
+    slider: Slider,
+    header: Header,
+    pageloader: Pageloader,
+    webcam: Webcam,
+    tracker: Tracker,
+    error: Error,
+    config: Config,
+    color: Color,
+    sensitivity: Sensitivity,
+    offset: Offset
   },
-  data: {
-    id: 1,
-    debugMode: false,
-    isLoading: true,
-    useBlur: false,
-    useErode: false,
-    useDilate: false,
-    erodeDilateStrength: 3,
-    wsaddress: "ws://localhost:8765/",
-    colorhuesensitivity: 0.1,
-    colorsaturationsensitivity: 0.4,
-    colorvaluesensitivity: 0.4,
-    showTrackerRect: true,
+  data: function() {
+    return {
+      id: 1,
+      debugMode: false,
+      isLoading: true,
+      useBlur: false,
+      useErode: false,
+      useDilate: false,
+      erodeDilateStrength: 3,
+      wsaddress: "ws://localhost:8765/",
+      colorhuesensitivity: 0.1,
+      colorsaturationsensitivity: 0.4,
+      colorvaluesensitivity: 0.4,
+      showTrackerRect: true,
 
-    ztracking: true,
-    focallength: 0.4,
-    movingsensitivity: 10,
-    zoffset: 0,
-    yoffset: 0,
-    zsensitivity: 100,
-    targetwidth: 5,
-    fps: 72,
-    fpscolor: "gray",
-    isTracking: false,
-    colors: { hsv: { h: 80, s: 0.65, v: 0.96 } },
-    webcamOn: false,
+      ztracking: true,
+      focallength: 0.4,
+      movingsensitivity: 10,
+      zoffset: 0,
+      yoffset: 0,
+      zsensitivity: 100,
+      targetwidth: 5,
+      fps: 72,
+      fpscolor: "gray",
+      isTracking: false,
+      colors: { hsv: { h: 80, s: 0.65, v: 0.96 } },
+      webcamOn: false,
 
-    webcamwidth: 200,
-    blurStrength: 4,
+      webcamwidth: 200,
+      blurStrength: 4,
 
-    webcamrealheight: 100,
-    webcamrealwidth: 100,
-    trackerscale: 1,
-    error: "",
-    exported: "",
-    wasmloaded: false,
-    webcamloaded: false,
-    advanced: false,
-    fpscounter: 0,
-    wsstatus: "not connected :(",
-    wsstatuscolor: "red",
-    loadingText: "loading",
-    testSliderValue: 0.2,
-    biggestContour: false,
-    contoursCount: 0,
-    //counting contours flag. if used per frame will kill the performance
-    contoursCheckFlag: false,
-    showVideos: true
+      webcamrealheight: 100,
+      webcamrealwidth: 100,
+      trackerscale: 1,
+      error: "",
+      exported: "",
+      wasmloaded: false,
+      webcamloaded: false,
+      advanced: false,
+      fpscounter: 0,
+      wsstatus: "not connected :(",
+      wsstatuscolor: "red",
+      loadingText: "loading",
+      testSliderValue: 0.2,
+      biggestContour: false,
+      contoursCount: 0,
+      //counting contours flag. if used per frame will kill the performance
+      contoursCheckFlag: false,
+      showVideos: true
+    };
   },
   computed: {
     videosVisibilityClass: function() {
@@ -103,7 +99,8 @@ export default {
       return "is-invisible";
     },
     backgroundcolor: function() {
-      return tinycolor(this.colors.hsv).toHexString();
+      return "#FFF";
+      //return tinycolor(this.colors.hsv).toHexString();
     },
     userFriendlyError: function() {
       //if(this.error.includes("1006")) return "could not connect to your headset. run the game before connecting. and check if ip address is correct.";
@@ -115,7 +112,7 @@ export default {
     },
     pageloaderClass: function() {
       //if(this.error!="") return "pageloader";
-      if (this.isLoading) return "pageloader is-active";
+      //if (this.isLoading) return "pageloader is-active";
       return "pageloader";
     },
     lowh: function() {
@@ -155,6 +152,7 @@ export default {
       if (r > 255) return 255;
       return parseInt(r);
     },
+
     aspect: function() {
       return this.webcamrealheight / this.webcamrealwidth;
     },
@@ -177,27 +175,28 @@ export default {
       this.isTracking = !this.isTracking;
 
       if (this.isTracking) {
-        onVideoStarted();
+        //    onVideoStarted();
       } else {
-        onVideoStopped();
+        //  onVideoStopped();
       }
     },
     fpsupdate: function() {
       try {
-        console.log("fpsupdate");
+        /*console.log("fpsupdate");
         if (webcam == undefined) return;
         var stream = webcam.srcObject;
         if (stream == undefined) return;
-        var streamsettings = stream.getVideoTracks()[0].getSettings();
-        streamsettings.frameRate = this.fps;
+       */
+        //var streamsettings = stream.getVideoTracks()[0].getSettings();
+        // streamsettings.frameRate = this.fps;
       } catch (e) {
         this.error = e;
       }
     },
     wsupdate: function() {
-      console.log("wsupdate");
+      //    console.log("wsupdate");
       try {
-        ws = new WebSocket(this.wsaddress);
+        /*ws = new WebSocket(this.wsaddress);
         this.wsstatus = "connecting...";
         this.wsstatuscolor = "orange";
         ws.onerror = () => {
@@ -223,6 +222,7 @@ export default {
           alert(server_message);
           return false;
         };
+        */
       } catch (e) {
         this.error = e;
       }
@@ -243,7 +243,7 @@ export default {
         ) {
           continue;
         }
-        console.log(key);
+        //        console.log(key);
         try {
           this.$data[key] = settings[key];
         } catch (e) {
@@ -264,7 +264,7 @@ export default {
   },
   watch: {
     fpscounter: function(v) {
-      console.log("fps:" + v);
+      // console.log("fps:" + v);
       if (v >= 58) {
         this.fpscolor = "green";
       } else if (v >= 48) {
@@ -272,14 +272,12 @@ export default {
       } else {
         this.fpscolor = "red";
       }
-    },
-    error: function(v) {
-      console.log(v);
-    }
+    } //,
+    //error: v => {
+    //      console.log(v);
+    //}
   },
-  mount: {
-
-  }
+  mount: {}
 };
 
 /*
@@ -287,7 +285,7 @@ window.onerror = function(error, url, line) {
   this.error = error;
 };
 */
-
+/*
 function startTracking() {
   webcam.play();
   console.log("started tracking!");
@@ -306,7 +304,7 @@ function startTracking() {
   //let video = document.getElementById('webcam');
   let cap = new cv.VideoCapture(webcam);
 
-  console.log("capturing first frame!");
+//  console.log("capturing first frame!");
 
   // take first frame of the video
   let frame = new cv.Mat(webcam.height, webcam.width, cv.CV_8UC4);
@@ -482,26 +480,29 @@ function startTracking() {
   setTimeout(processVideo, 0);
 }
 
+*/
+/*
 function onVideoStarted() {
-  startTracking();
+  //startTracking();
   //this.wsupdate();
 }
 
 function onVideoStopped() {
-  canvasContext.clearRect(0, 0, this.trackerwidth, this.trackerheight);
+  //canvasContext.clearRect(0, 0, this.trackerwidth, this.trackerheight);
 }
+*/
 
 //todo
-
+/*
 function loadwebcam() {
   var md = navigator.mediaDevices;
   if (md.getUserMedia) {
     console.log("getting user media");
     md.getUserMedia({ video: true, audio: false })
       .then(function(stream) {
-        console.log("stream:" + stream);
+  //      console.log("stream:" + stream);
         webcam = document.querySelector("#webcam");
-        console.log("webcam: " + webcam);
+//        console.log("webcam: " + webcam);
 
         webcam.srcObject = stream;
         //var videoTrack = stream.getVideoTracks()[0];
@@ -525,6 +526,8 @@ function opencvIsReady() {
   this.wasmloaded = true;
 }
 
+*/
+/*
 function updateHsvRanges() {
   console.log("updating hsv ranges");
 
@@ -551,6 +554,7 @@ function updateHsvRanges() {
     255
   ]);
 }
+*/
 
 if (localStorage.wsaddress) {
   this.wsaddress = localStorage.wsaddress;
@@ -562,13 +566,4 @@ if (localStorage.wsaddress) {
 //this.isLoading = false;
 </script>
 
-<style>
-#app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+<style></style>

@@ -8,7 +8,7 @@ new Vue({
   render: h => h(App),
 }).$mount('#app')
 
-
+/*
 
 
 window.onerror = function(error, url, line) {
@@ -283,3 +283,4 @@ function updateHsvRanges() {
 if (localStorage.wsaddress) {
   app.wsaddress = localStorage.wsaddress;
 }
+*/
