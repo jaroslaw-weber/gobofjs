@@ -7,6 +7,6 @@
 
 <script>
 module.exports = {
-  data: function() {},
+  data: () => {return {}},
 };
 </script>

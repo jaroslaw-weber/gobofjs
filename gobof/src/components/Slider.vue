@@ -18,8 +18,8 @@
 </template>
 
 <script>
-module.exports = {
-  data: function() {},
+export default {
+  data: () => {return {}},
   props: ["value", "label", "help", "step", "min", "max"]
 };
 </script>

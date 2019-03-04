@@ -20,7 +20,10 @@
 </template>
 
 <script>
-module.exports = {
-  data: function() {},
+import Slider from "./Slider.vue";
+export default {
+  data: () => {return {}},
+  components: {slider: Slider},
+  props: ["yoffset", "zoffset"]
 };
 </script>

@@ -30,11 +30,17 @@
 
 <script>
 module.exports = {
-  data: function() {},
+  data: () => {
+    return {
+      //display fps
+      fpscolor: "gray",
+      //real fps rigth now
+      fpscounter: 0
+    };
+  },
   props: ["width", "height"]
 };
 </script>
 
 <style>
-
 </style>

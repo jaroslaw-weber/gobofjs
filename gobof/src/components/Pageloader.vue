@@ -1,11 +1,19 @@
 <template>
   <div v-bind:class="pageloaderClass">
-    <span class="title">{{loadingText}}</span>
+    <span class="title">loading...</span>
   </div>
 </template>
 
 <script>
-module.exports = {
-  data: function() {},
+export default {
+  data: () => {return {}},
+  props: ["isLoading"],
+  computed: {
+    pageloaderClass: () => {
+      //if(this.error!="") return "pageloader";
+      //if (this.isLoading) return "pageloader is-active";
+      return "pageloader";
+    }
+  }
 };
 </script>

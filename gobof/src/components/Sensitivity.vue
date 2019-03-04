@@ -23,8 +23,14 @@
 
 
 <script>
-module.exports = {
-  data: function() {},
-  props: ["width", "height"]
+import Slider from "./Slider.vue";
+export default {
+  data: function() {
+    return {};
+  },
+  components:{
+    slider: Slider
+  },
+  props: ["movingsensitivity", "zsensitivity"]
 };
 </script>

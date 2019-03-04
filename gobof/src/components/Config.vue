@@ -39,3 +39,50 @@
     </div>
   </div>
 </template>
+<script>
+import Slider from "./Slider.vue";
+
+export default {
+  data: () => {
+    return {};
+  },
+  components: { slider: Slider },
+  props: [],
+  methods: {
+    save: function() {
+      var settings = JSON.stringify(this.$data);
+      localStorage.settings = settings;
+    },
+    load: function() {
+      var settings = JSON.parse(localStorage.settings);
+      this.$data = settings;
+
+      for (var key in settings) {
+        if (
+          key == "wasmloaded" ||
+          key == "isLoading" ||
+          key == "webcamloaded"
+        ) {
+          continue;
+        }
+        //        console.log(key);
+        try {
+          this.$data[key] = settings[key];
+        } catch (e) {
+          this.error = e;
+        }
+      }
+      this.wsupdate();
+    },
+
+    exportSettings: function() {
+      var asJson = JSON.stringify(this.$data, null, "\t");
+      this.exported = asJson;
+    },
+
+    reset: function() {
+      localStorage.clear();
+    }
+  }
+};
+</script>

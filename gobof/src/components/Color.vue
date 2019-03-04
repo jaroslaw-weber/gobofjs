@@ -85,3 +85,60 @@
     </div>
   </div>
 </template>
+<script>
+import VueColor from "vue-color";
+import tinycolor from "tinycolor";
+export default {
+  data: () => {
+    return {};
+  },
+  props: ["colors"],
+  components: {
+    "compact-picker": VueColor.Compact
+  },
+  computed: {
+    backgroundcolor: function() {
+      //return "#FFF";
+      return tinycolor(this.colors.hsv).toHexString();
+    },
+
+    lowh: function() {
+      var x = this.colors.hsv.h;
+      var r = x - 255 * this.colorhuesensitivity;
+      if (r < 0) return 0;
+      return parseInt(r);
+    },
+    lows: function() {
+      var x = this.colors.hsv.s;
+      var r = x * 255 - this.colorsaturationsensitivity * 255;
+      if (r < 0) return 0;
+      return parseInt(r);
+    },
+    lowv: function() {
+      var x = this.colors.hsv.v;
+      var r = x * 255 - this.colorvaluesensitivity * 255;
+      if (r < 0) return 0;
+      return parseInt(r);
+    },
+    highh: function() {
+      var x = this.colors.hsv.h;
+      var r = x + 255 * this.colorhuesensitivity;
+      if (r > 255) return 255;
+      return parseInt(r);
+    },
+    highs: function() {
+      var x = this.colors.hsv.s;
+      var r = x * 255 + this.colorsaturationsensitivity * 255;
+      if (r > 255) return 255;
+      return parseInt(r);
+    },
+    highv: function() {
+      var x = this.colors.hsv.v;
+      //console.log(this.colors.hsv);
+      var r = x * 255 + this.colorvaluesensitivity * 255;
+      if (r > 255) return 255;
+      return parseInt(r);
+    }
+  }
+};
+</script>
