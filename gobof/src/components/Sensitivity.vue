@@ -2,21 +2,33 @@
 <template>
   <div>
     <slider
-      v-model.number="movingsensitivity"
-      label="movement sensitivity"
-      help="sensitivity for x and y axis"
+      :value="sensitivity.x"
+      @input="$emit('x-change', $event)"
+      label="x axis sensitivity"
+      help="sensitivity for x axis"
       step="1"
       min="0"
       max="200"
     ></slider>
 
     <slider
-      v-model.number="zsensitivity"
+      :value="sensitivity.y"
+      @input="$emit('y-change', $event)"
+      label="y axis sensitivity"
+      help="sensitivity for y axis"
+      step="1"
+      min="0"
+      max="200"
+    ></slider>
+
+    <slider
+      :value="sensitivity.z"
+      @input="$emit('z-change', $event)"
       label="z axis sensitivity"
       help="sensitivity for z axis"
       step="1"
       min="0"
-      max="300"
+      max="200"
     ></slider>
   </div>
 </template>
@@ -28,9 +40,9 @@ export default {
   data: function() {
     return {};
   },
-  components:{
+  components: {
     slider: Slider
   },
-  props: ["movingsensitivity", "zsensitivity"]
+  props: ["sensitivity"]
 };
 </script>

@@ -3,7 +3,7 @@
     <div class="columns">
       <div class="column">
         <div>
-          <input class="input" v-model="wsaddress" type="text" @input="wsupdate">
+          <input class="input" :value="address" type="text" @input="wsupdate">
         </div>
         <br>
         <div>
@@ -21,14 +21,14 @@
 
 
 <script>
-module.exports = {
+export default {
   data: () => {
     return {
       wsstatus: "not connected :(",
       wsstatuscolor: "red"
     };
   },
-  props: ["wsstatus", "wsstatuscolor", "wsaddress", "wsupdate"],
+  props: ["status", "address"],
   watch: {
     wsupdate: function() {
       //    console.log("wsupdate");

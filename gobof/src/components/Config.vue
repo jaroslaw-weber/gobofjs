@@ -6,6 +6,7 @@
       <button class="button" v-on:click="reset()">reset</button>
       <button class="button" v-on:click="exportSettings()">export</button>
       <button class="button" v-on:click="load()" disabled>import</button>
+      <br>
       <div v-if="exported!=''">
         <br>
         <pre class="box">
@@ -13,6 +14,7 @@
             </pre>
       </div>
     </div>
+    <br>
 
     <slider
       v-model.number="focallength"
@@ -44,10 +46,11 @@ import Slider from "./Slider.vue";
 
 export default {
   data: () => {
-    return {};
+    return {
+      exported: ""
+    };
   },
   components: { slider: Slider },
-  props: [],
   methods: {
     save: function() {
       var settings = JSON.stringify(this.$data);

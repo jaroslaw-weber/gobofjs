@@ -5,12 +5,12 @@
     <div class="control">
       <input
         class="slider has-output"
-        v-bind:step="step"
-        v-bind:min="min"
-        v-bind:max="max"
+        :step="step"
+        :min="min"
+        :max="max"
         type="range"
-        v-bind:value="value"
-        v-on:input="$emit('input', $event.target.value)"
+        :value="value"
+        @input="$emit('input', $event.target.value)"
       >
       <output>{{value}}</output>
     </div>

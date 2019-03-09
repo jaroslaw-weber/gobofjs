@@ -2,7 +2,7 @@
   <div>
     <div class="field">
       <label class="label">resolution</label>
-      <p class="help">{{webcamwidth}} x {{webcamheight}}</p>
+      <p class="help">{{size}} x {{size}}</p>
       <div class="control">
         <input
           class="slider has-output"
@@ -10,14 +10,16 @@
           min="50"
           max="1000"
           type="range"
-          v-model.number="webcamwidth"
+          :value="size"
+          @input="$emit('sizeChange', $event.target.value)"
         >
-        <output>{{webcamwidth}}</output>
+        <output>{{size}}</output>
       </div>
     </div>
 
     <slider
-      v-model.number="fps"
+      :value="fps"
+      @input="$emit('fpsChange', $event)"
       label="fps"
       help="be careful not to set it too high or too low. adjust depending on the performance"
       step="1"
@@ -26,7 +28,8 @@
     ></slider>
 
     <slider
-      v-model.number="blurStrength"
+      :value="blurStrength"
+      @input="$emit('blurStrengthChange', $event)"
       label="blur strength"
       help="jittery? try blurring the image"
       step="1"
@@ -35,7 +38,8 @@
     ></slider>
 
     <slider
-      v-model.number="erodeDilateStrength"
+      :value="erodeDilateStrength"
+      @input="$emit('erodeDilateStrengthChange', $event)"
       label="erode/dilate strength"
       help="similar to blur"
       step="1"
@@ -68,17 +72,22 @@
       <label class="label">show tracker rect</label>
       <input class="checkbox" type="checkbox" v-model="showTrackerRect">
     </div>
-
+<hr>
     <button class="button" v-on:click="countcontours()">count objects</button>
-
+<br><br>
     <p>object count: {{contoursCount}}</p>
   </div>
 </template>
 
 <script>
-module.exports = {
-  data: () => {return {}},
-  props: [
-  ]
+import Slider from "./Slider.vue";
+export default {
+  data: () => {
+    return {};
+  },
+  components: {
+    slider: Slider
+  },
+  props: ["size", "blurStrength", "erodeDilateStrength", "fps"]
 };
 </script>

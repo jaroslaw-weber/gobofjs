@@ -1,54 +1,106 @@
 <template>
-  <section class="section">
-    <div class="container">
-      <pageloader></pageloader>
-      <top></top>
-      <webcam-and-tracker></webcam-and-tracker>
-      <tracker></tracker>
-      <connection></connection>
-      <error></error>
-      <config></config>
-      <color></color>
-      <sensitivity></sensitivity>
-      <offset></offset>
-    </div>
-  </section>
+  <div id="app">
+    <section class="section">
+      <div class="container">
+        <pageloader></pageloader>
+        <navbar @navbar=" v => selectedMenu = v"></navbar>
+        <br>
+        <br>
+        <div v-if="selectedMenu=='home'">
+          <top></top>
+          <br>
+          <p>Positional tracking in browser based on color detection with opencv.</p>
+        </div>
+
+        <webcam-and-tracker
+          :visible="selectedMenu=='webcam' || selectedMenu=='tracker'"
+          :isTracking="isTracking"
+          :size="config.webcamwidth"
+          @toggleTracking="isTracking = !isTracking"
+        ></webcam-and-tracker>
+        <performance
+          v-if="selectedMenu=='performance'"
+          :size="config.webcamwidth"
+          :fps="config.fps"
+          :blurStrength="config.blurStrength"
+          :erodeDilateStrength="config.erodeDilateStrength"
+          @sizeChange="v => config.webcamwidth = v"
+          @fpsChange="v => config.fps = v"
+          @blurStrengthChange="v => config.blurStrength = v"
+          @erodeDilateStrengthChange="v => config.erodeDilateStrength = v"
+        ></performance>
+        <connection :address="wsaddress" v-if="selectedMenu=='connection'"></connection>
+        <div v-if="error!=''">
+          <error></error>
+        </div>
+        <config v-if="selectedMenu=='other'"></config>
+        <color
+          :hsv="config.color"
+          v-if="selectedMenu=='color'"
+          :sensitivity="config.colorSensitivity"
+          @picker="v => config.color = v.hsv"
+          @h-change="v =>config.color.h = v"
+          @s-change="v =>config.color.s = v"
+          @v-change="v =>config.color.v = v"
+          @sensitivity-h-change="v =>config.colorSensitivity.h = v"
+          @sensitivity-s-change="v =>config.colorSensitivity.s = v"
+          @sensitivity-v-change="v =>config.colorSensitivity.v = v"
+        ></color>
+        <sensitivity
+          v-if="selectedMenu=='sensitivity'"
+          :sensitivity="config.sensitivity"
+          @x-change="v => config.sensitivity.x = v"
+          @y-change="v => config.sensitivity.y = v"
+          @z-change="v => config.sensitivity.z = v"
+        ></sensitivity>
+        <offset
+          v-if="selectedMenu=='offset'"
+          :offset="config.offset"
+          @x-change="v => config.offset.x = v"
+          @y-change="v => config.offset.y = v"
+          @z-change="v => config.offset.z = v"
+        ></offset>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script>
 import "bulma/css/bulma.css";
+import "bulma-extensions/dist/css/bulma-extensions.min.css";
 
 import Top from "./components/Top.vue";
 import Pageloader from "./components/Pageloader.vue";
 import WebcamAndTracker from "./components/WebcamAndTracker.vue";
-import Tracker from "./components/Tracker.vue";
 import Error from "./components/Error.vue";
 import Config from "./components/Config.vue";
 import Color from "./components/Color.vue";
 import Sensitivity from "./components/Sensitivity.vue";
 import Offset from "./components/Offset.vue";
+import Performance from "./components/Performance.vue";
+import Navbar from "./components/Navbar.vue";
+import Connection from "./components/Connection.vue";
 
 let defaultConfig = {
   id: 1,
   debugMode: false,
+
   useBlur: false,
   useErode: true,
   useDilate: false,
   erodeDilateStrength: 3,
   wsaddress: "ws://localhost:8765/",
-  colorhuesensitivity: 0.1,
-  colorsaturationsensitivity: 0.4,
-  colorvaluesensitivity: 0.4,
+
+  colorSensitivity: { h: 0.1, s: 0.4, v: 0.4 },
+
   showTrackerRect: true,
-  ztracking: true,
+
   focallength: 0.4,
-  movingsensitivity: 10,
-  zoffset: 0,
-  yoffset: 0,
-  zsensitivity: 100,
+  sensitivity: { x: 15, y: 15, z: 15 },
+  offset: { x: 0, y: 0, z: 0 },
   targetwidth: 5,
   fps: 72,
-  colors: { hsv: { h: 80, s: 0.65, v: 0.96 } },
+  color: { h: 80, s: 0.65, v: 0.96 },
   webcamOn: false,
 
   webcamwidth: 200,
@@ -66,15 +118,24 @@ export default {
   components: {
     top: Top,
     pageloader: Pageloader,
+    navbar: Navbar,
     "webcam-and-tracker": WebcamAndTracker,
     error: Error,
     config: Config,
     color: Color,
     sensitivity: Sensitivity,
-    offset: Offset
+    offset: Offset,
+    performance: Performance,
+    connection: Connection
+  },
+  methods: {
+    onWasmLoaded() {
+      this.wasmloaded = true;
+    }
   },
   data: function() {
     return {
+      selectedMenu: "home",
       //all config in one place
       config: defaultConfig,
       //is loading page
@@ -107,6 +168,18 @@ export default {
     }
   }
 };
+
 </script>
 
-<style></style>
+<style>
+#app {
+  font-family: "Comfortaa", cursive;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+button {
+  font-family: "Comfortaa", cursive;
+}
+</style>

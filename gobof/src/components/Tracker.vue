@@ -4,20 +4,14 @@
       <div class="content">
         <p>tracking</p>
       </div>
-      <canvas id="canvasOutput" v-bind:width="width" v-bind:height="height" muted></canvas>
+      <canvas id="canvasOutput" :width="size" :height="size" muted></canvas>
     </div>
 
     <div class="control">
-      <button
-        class="button is-primary"
-        v-on:click="toggleTracking()"
-        :disabled="!wasmloaded"
-      >{{trackingButton}}</button>
-      <button
-        class="button is-primary"
-        v-on:click="toggleTracking()"
-        :disabled="!wasmloaded"
-      >apply changes</button>
+      <button class="button is-primary" @click="$emit('toggleTracking')">{{buttonText}}</button>
+      <br>
+      <br>
+      <p>you may need to restart tracker after changing settings</p>
     </div>
     <div class="column" v-if="fpscounter>1">
       <div>
@@ -29,7 +23,7 @@
 
 
 <script>
-module.exports = {
+export default {
   data: () => {
     return {
       //display fps
@@ -38,7 +32,13 @@ module.exports = {
       fpscounter: 0
     };
   },
-  props: ["width", "height"]
+  props: ["size", "isTracking"],
+  computed: {
+    buttonText: function() {
+      if (this.isTracking) return "stop";
+      return "start";
+    }
+  }
 };
 </script>
 

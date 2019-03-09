@@ -4,25 +4,20 @@
       <div class="content">
         <p>your webcam</p>
       </div>
-      <video
-        id="webcam"
-        v-bind:width="width"
-        v-bind:height="height"
-        autoplay
-        muted
-      >Your browser does not support the video tag.</video>
-    </div>
-
-    <div class="control">
-      <button class="button is-primary" onclick="loadwebcam()">load webcam</button>
+      <cam id="webcam" :width="size" :height="size" :muted="false">Your browser does not support the video tag.</cam>
     </div>
   </div>
 </template>
 
 
 <script>
-module.exports = {
-  data: () => {return {}},
-  props: ["width", "height"]
+import Camera from "vue-web-cam";
+
+export default {
+  data: () => {
+    return {};
+  },
+  props: ["size"],
+  components: { cam: Camera.WebCam }
 };
 </script>

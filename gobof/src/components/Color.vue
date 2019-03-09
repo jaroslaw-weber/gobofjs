@@ -5,7 +5,7 @@
       <br>
       <div class="columns">
         <div class="column">
-          <compact-picker v-model="colors"></compact-picker>
+          <compact-picker @input="$emit('picker', $event)" :value="this.hsv"></compact-picker>
         </div>
         <div class="column">
           <label class="label">hsv range</label>
@@ -15,7 +15,7 @@
       </div>
     </div>
     <br>
-    <div class="rounded-corners" v-bind:style="{background: backgroundcolor}">&nbsp;</div>
+    <div class="rounded-corners" :style="{background: backgroundcolor}">&nbsp;</div>
     <br>
 
     <div class="field">
@@ -28,9 +28,10 @@
           min="0"
           max="255"
           type="range"
-          v-model.number="colors.hsv.h"
+          :value="hsv.h"
+          @input="$emit('h-change', $event.target.value)"
         >
-        <output>{{colors.hsv.h}}</output>
+        <output>{{hsv.h}}</output>
       </div>
       <div class="control">
         <input
@@ -39,9 +40,10 @@
           min="0"
           max="1"
           type="range"
-          v-model.number="colors.hsv.s"
+          :value="hsv.s"
+          @input="$emit('s-change', $event.target.value)"
         >
-        <output>{{colors.hsv.s}}</output>
+        <output>{{hsv.s}}</output>
       </div>
       <div class="control">
         <input
@@ -50,92 +52,96 @@
           min="0"
           max="1"
           type="range"
-          v-model.number="colors.hsv.v"
+          :value="hsv.v"
+          @input="$emit('v-change', $event.target.value)"
         >
-        <output>{{colors.hsv.v}}</output>
+        <output>{{hsv.v}}</output>
       </div>
     </div>
-    <div v-if="advanced">
-      <slider
-        v-model.number="colorhuesensitivity"
-        label="hue sensitivity"
-        help="different values for different colors"
-        step="0.02"
-        min="0"
-        max="1"
-      ></slider>
+    <slider
+      :value="sensitivity.h"
+      @input="$emit('sensitivity-h-change', $event)"
+      label="hue sensitivity"
+      help="different values for different colors"
+      step="0.02"
+      min="0"
+      max="1"
+    ></slider>
 
-      <slider
-        v-model.number="colorsaturationsensitivity"
-        label="saturation sensitivity"
-        help="saturated color is 1, grey is 0"
-        step="0.02"
-        min="0"
-        max="1"
-      ></slider>
+    <slider
+      :value="sensitivity.s"
+      @input="$emit('sensitivity-s-change', $event)"
+      label="saturation sensitivity"
+      help="saturated color is 1, grey is 0"
+      step="0.02"
+      min="0"
+      max="1"
+    ></slider>
 
-      <slider
-        v-model.number="colorvaluesensitivity"
-        label="value sensitivity"
-        help="bright is 1, dark is 0"
-        step="0.02"
-        min="0"
-        max="1"
-      ></slider>
-    </div>
+    <slider
+      :value="sensitivity.v"
+      @input="$emit('sensitivity-v-change', $event)"
+      label="value sensitivity"
+      help="bright is 1, dark is 0"
+      step="0.02"
+      min="0"
+      max="1"
+    ></slider>
   </div>
 </template>
 <script>
 import VueColor from "vue-color";
-import tinycolor from "tinycolor";
+import Slider from "./Slider.vue";
+import { TinyColor } from "@ctrl/tinycolor";
 export default {
   data: () => {
     return {};
   },
-  props: ["colors"],
+  props: ["hsv", "sensitivity"],
   components: {
-    "compact-picker": VueColor.Compact
+    "compact-picker": VueColor.Compact,
+    slider: Slider
   },
   computed: {
     backgroundcolor: function() {
       //return "#FFF";
-      return tinycolor(this.colors.hsv).toHexString();
+      return new TinyColor(this.hsv).toHexString();
     },
 
     lowh: function() {
-      var x = this.colors.hsv.h;
-      var r = x - 255 * this.colorhuesensitivity;
+      var x = this.hsv.h;
+      var r = x - 255 * this.sensitivity.h;
       if (r < 0) return 0;
       return parseInt(r);
     },
     lows: function() {
-      var x = this.colors.hsv.s;
-      var r = x * 255 - this.colorsaturationsensitivity * 255;
+      var x = this.hsv.s;
+      var r = x * 255 - this.sensitivity.s * 255;
       if (r < 0) return 0;
       return parseInt(r);
     },
     lowv: function() {
-      var x = this.colors.hsv.v;
-      var r = x * 255 - this.colorvaluesensitivity * 255;
+      var x = this.hsv.v;
+      var r = x * 255 - this.sensitivity.v * 255;
       if (r < 0) return 0;
       return parseInt(r);
     },
     highh: function() {
-      var x = this.colors.hsv.h;
-      var r = x + 255 * this.colorhuesensitivity;
+      var x = this.hsv.h;
+      var r = x + 255 * this.sensitivity.h;
       if (r > 255) return 255;
       return parseInt(r);
     },
     highs: function() {
-      var x = this.colors.hsv.s;
-      var r = x * 255 + this.colorsaturationsensitivity * 255;
+      var x = this.hsv.s;
+      var r = x * 255 + this.sensitivity.s * 255;
       if (r > 255) return 255;
       return parseInt(r);
     },
     highv: function() {
-      var x = this.colors.hsv.v;
+      var x = this.hsv.v;
       //console.log(this.colors.hsv);
-      var r = x * 255 + this.colorvaluesensitivity * 255;
+      var r = x * 255 + this.sensitivity.v * 255;
       if (r > 255) return 255;
       return parseInt(r);
     }

@@ -8,12 +8,14 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@ctrl/tinycolor": "^2.4.0",
     "bulma": "^0.7.4",
     "bulma-extensions": "^6.0.1",
     "tinycolor": "0.0.1",
     "umbrella": "^0.1.4",
     "vue": "^2.6.6",
-    "vue-color": "^2.7.0"
+    "vue-color": "^2.7.0",
+    "vue-web-cam": "^1.4.3"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.4.0",
