@@ -131,6 +131,12 @@ export default {
   methods: {
     onWasmLoaded() {
       this.wasmloaded = true;
+    },
+    toggleTracking() {
+      let config = JSON.stringify(this.config);
+      console.log(config);
+      localStorage.setItem('tempconfig', config);
+      this.isTracking = !this.isTracking;
     }
   },
   data: function() {
@@ -168,7 +174,6 @@ export default {
     }
   }
 };
-
 </script>
 
 <style>

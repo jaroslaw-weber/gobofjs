@@ -8,7 +8,7 @@
     </div>
 
     <div class="control">
-      <button class="button is-primary" @click="$emit('toggleTracking')">{{buttonText}}</button>
+      <button id="trackerbutton" class="button is-primary" @click="$emit('toggleTracking')">{{buttonText}}</button>
       <br>
       <br>
       <p>you may need to restart tracker after changing settings</p>

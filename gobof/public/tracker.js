@@ -18,11 +18,10 @@ let cv = undefined;
 
 let fpsCounter = 0;
 
-function updateConfig(newConfig) {
-	config = newConfig;
-}
+
 
 function startTracking() {
+	console.log("start tracking");
 	let webcam = config.webcam;
 	webcam.play();
 
@@ -243,3 +242,19 @@ var Module = {
 	wasmBinaryFile: './opencv/opencv_js.wasm',
 	_main: function () { opencvIsReady(); }
 };
+
+function loadConfig()
+{
+	var configJson = localStorage.getItem("tempconfig");
+	console.log(configJson);
+	config = JSON.parse(configJson);
+	console.log(config);
+}
+
+document.querySelector("#trackerbutton").addEventListener("click", () => {
+	console.log("click on tracker button");
+	setTimeout(() => {
+		loadConfig();
+		startTracking();
+	}, 1000);
+});
