@@ -13,9 +13,9 @@
       <br>
       <p>you may need to restart tracker after changing settings</p>
     </div>
-    <div class="column" v-if="fpscounter>1">
+    <div class="column">
       <div>
-        <p v-bind:style="{color:fpscolor}">fps: {{fpscounter}}</p>
+        <p id="fps" v-bind:style="{color:fpscolor}">fps: {{fpscounter}}</p>
       </div>
     </div>
   </div>

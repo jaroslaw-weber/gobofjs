@@ -4,7 +4,6 @@
 
 
 let config = {
-	webcam: undefined,
 	blurStrength: undefined,
 	errodeDilateStrength: undefined,
 	size: undefined,
@@ -14,16 +13,19 @@ let config = {
 let hsv = undefined;
 let high = undefined;
 let low = undefined;
-let cv = undefined;
 
-let fpsCounter = 0;
 
 
 
 function startTracking() {
+	let fpsCounter = 0;
+	//let cv = window.cv;
 	console.log("start tracking");
-	let webcam = config.webcam;
+	console.log(config);
+	let webcam = document.querySelector("#webcam");
+	let canvasOutput = document.querySelector("#canvasOutput");
 	webcam.play();
+	hsv = new cv.Mat(webcam.height, webcam.width, cv.CV_8UC3);
 
 	let ksize = new cv.Size(config.blurStrength, config.blurStrength);
 	let M = cv.Mat.ones(
@@ -38,13 +40,13 @@ function startTracking() {
 	let small = new cv.Mat(h, w, cv.CV_8UC4);
 	//let video = document.getElementById('webcam');
 	let cap = new cv.VideoCapture(webcam);
+	let fpsDisplay= document.querySelector("#fps");
 
 	//console.log("capturing first frame!");
 
 	// take first frame of the video
 	let frame = new cv.Mat(webcam.height, webcam.width, cv.CV_8UC4);
 	cap.read(frame);
-	hsv = new cv.Mat(webcam.height, webcam.width, cv.CV_8UC3);
 	let dst = new cv.Mat();
 
 	let contours = new cv.MatVector();
@@ -54,6 +56,7 @@ function startTracking() {
 	function processVideo() {
 		try {
 			if (!config.isTracking) {
+				console.log("stopping tracking...");
 				// clean and stop.
 				frame.delete();
 				dst.delete();
@@ -68,6 +71,7 @@ function startTracking() {
 
 			let start = Date.now();
 
+			//console.log("reading frame");
 			cap.read(frame);
 			//console.log("reading next frame");
 			//cv.resize(frame, small, dsize, 0, 0, cv.INTER_NEAREST);
@@ -99,23 +103,27 @@ function startTracking() {
 					cv.morphologyDefaultBorderValue()
 				);
 			}
+			//console.log("finding contours");
 			cv.findContours(
 				dst,
 				contours,
 				hierarchy,
 				cv.RETR_EXTERNAL,
-				cv.CHAIN_configROX_SIMPLE
+				cv.CHAIN_APPROX_SIMPLE
 			);
+			//console.log("contours find check");
 
 			let biggestContour = undefined;
 			let biggestarea = undefined
 			let biggestContourIndex = -1;
-
+/*
 			if (config.contoursCheckFlag) {
 				config.contoursCount = contours.size();
 				config.contoursCheckFlag = false;
 			}
+			*/
 
+			//console.log("getting biggest contour");
 			if (config.biggestContour) {
 				for (var i = 0; i < contours.size(); i++) {
 					let contour = contours.get(i);
@@ -138,7 +146,7 @@ function startTracking() {
 					biggestContour = contours.get(0);
 				}
 			}
-
+			//console.log(biggestContourIndex + " biggest");
 			if (biggestContourIndex >= 0) {
 				let rect = cv.boundingRect(biggestContour);
 				if (config.showTrackerRect) {
@@ -173,7 +181,7 @@ function startTracking() {
 				//var z = config.zsensitivity * distance + config.zoffset;
 				var z = config.zsensitivity * (radius / screenSize) + config.zoffset;
 				var msg = config.id + "," + x + "," + y + "," + z;
-				//console.log(msg);
+				console.log(msg);
 				try {
 					config.ws.send(msg);
 				} catch (e) {
@@ -183,8 +191,10 @@ function startTracking() {
 				}
 			}
 
+			//console.log("drawing?");
 			//cv.imshow('trackingCheck', small);
 			if (config.showVideos) {
+				//console.log("drawing");
 				cv.imshow("canvasOutput", dst);
 			}
 
@@ -198,16 +208,21 @@ function startTracking() {
 				var seconds = passed / 1000;
 				//fps.innerText = processedFrames / seconds;
 				config.fpscounter = fpsCounter / seconds;
+				fpsDisplay.innerHTML = fpsCounter / seconds;
 				fpsCounter = 0;
+
 
 				start = Date.now();
 			}
 
 			setTimeout(processVideo, delay);
 		} catch (err) {
-			if (config.debugMode) {
+			//console.log(err);
+			//if (config.debugMode) {
+				console.log(err);
 				config.error = err;
-			}
+			//}
+			//setTimeout(processVideo, 0.1);
 		}
 	}
 
@@ -224,14 +239,64 @@ function opencvIsReady() {
 }
 
 function updateHsvRanges() {
-	console.log("updating hsv ranges");
+	//console.log("updating hsv ranges");
+	var h = config.size;
+	var w = config.size;
+	//console.log(config.size);
+	let hsvSettings = getHsvSettings();
 
-	let hsvSettings = [app.lowh, app.lows, app.lowv, app.highh, app.highs, app.highv];
-	var w = app.webcamwidth;
-	var h = app.webcamheight;
+	//console.log(hsvSettings);
+	let lowdata = [h, w, hsv.type(), hsvSettings[0], hsvSettings[1], hsvSettings[2], 0];
+	//console.log(lowdata);
 	low = new cv.Mat(h, w, hsv.type(), [hsvSettings[0], hsvSettings[1], hsvSettings[2], 0]);
 	high = new cv.Mat(h, w, hsv.type(), [hsvSettings[3], hsvSettings[4], hsvSettings[5], 255]);
 }
+
+function getHsvSettings() {
+
+	let hsvSettings = [lowh(), lows(), lowv(), highh(), highs(), highv()];
+	return hsvSettings;
+}
+
+//todo: same code in color.vue, refactor
+function lowh() {
+	var x = config.color.h;
+	var r = x - 255 * config.colorSensitivity.h;
+	if (r < 0) return 0;
+	return parseInt(r);
+}
+function lows() {
+	var x = config.color.s;
+	var r = x * 255 - config.colorSensitivity.s * 255;
+	if (r < 0) return 0;
+	return parseInt(r);
+}
+function lowv() {
+	var x = config.color.v;
+	var r = x * 255 - config.colorSensitivity.v * 255;
+	if (r < 0) return 0;
+	return parseInt(r);
+}
+function highh() {
+	var x = config.color.h;
+	var r = x + 255 * config.colorSensitivity.h;
+	if (r > 255) return 255;
+	return parseInt(r);
+}
+function highs() {
+	var x = config.color.s;
+	var r = x * 255 + config.colorSensitivity.s * 255;
+	if (r > 255) return 255;
+	return parseInt(r);
+}
+function highv() {
+	var x = config.color.v;
+	//console.log(config.colors.hsv);
+	var r = x * 255 + config.colorSensitivity.v * 255;
+	if (r > 255) return 255;
+	return parseInt(r);
+}
+
 
 //todo: reupload
 //opencv with WASM (faster and smaller)
@@ -243,12 +308,10 @@ var Module = {
 	_main: function () { opencvIsReady(); }
 };
 
-function loadConfig()
-{
-	var configJson = localStorage.getItem("tempconfig");
-	console.log(configJson);
+function loadConfig() {
+	var configJson = localStorage.tempConfig;
 	config = JSON.parse(configJson);
-	console.log(config);
+	//startTracking();
 }
 
 document.querySelector("#trackerbutton").addEventListener("click", () => {

@@ -15,17 +15,17 @@
         <webcam-and-tracker
           :visible="selectedMenu=='webcam' || selectedMenu=='tracker'"
           :isTracking="isTracking"
-          :size="config.webcamwidth"
-          @toggleTracking="isTracking = !isTracking"
+          :size="config.size"
+          @toggleTracking="toggleTracking()"
         ></webcam-and-tracker>
         <performance
           v-if="selectedMenu=='performance'"
-          :size="config.webcamwidth"
+          :size="config.size"
           :fps="config.fps"
           :blurStrength="config.blurStrength"
           :erodeDilateStrength="config.erodeDilateStrength"
-          @sizeChange="v => config.webcamwidth = v"
-          @fpsChange="v => config.fps = v"
+          @sizeChange="v => config.size = parseInt(v)"
+          @fpsChange="v => config.fps = parseInt(v)"
           @blurStrengthChange="v => config.blurStrength = v"
           @erodeDilateStrengthChange="v => config.erodeDilateStrength = v"
         ></performance>
@@ -103,7 +103,7 @@ let defaultConfig = {
   color: { h: 80, s: 0.65, v: 0.96 },
   webcamOn: false,
 
-  webcamwidth: 200,
+  size: 200,
   blurStrength: 4,
 
   webcamrealheight: 100,
@@ -111,7 +111,7 @@ let defaultConfig = {
   trackerscale: 1,
 
   showVideos: true,
-  biggestContour: false
+  biggestContour: true
 };
 export default {
   name: "app",
@@ -133,10 +133,12 @@ export default {
       this.wasmloaded = true;
     },
     toggleTracking() {
-      let config = JSON.stringify(this.config);
-      console.log(config);
-      localStorage.setItem('tempconfig', config);
       this.isTracking = !this.isTracking;
+      this.config.isTracking = this.isTracking;
+      let config = JSON.stringify(this.config);
+
+      console.log(config);
+      localStorage.tempConfig = config;
     }
   },
   data: function() {
@@ -172,7 +174,8 @@ export default {
         this.fpscolor = "red";
       }
     }
-  }
+  },
+
 };
 </script>
 
