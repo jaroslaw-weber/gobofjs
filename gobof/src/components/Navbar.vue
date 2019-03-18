@@ -30,6 +30,9 @@
         <a class="navbar-item" @click="$emit('navbar', 'offset')">Offset</a>
         <a class="navbar-item" @click="$emit('navbar', 'sensitivity')">Sensitivity</a>
         <a class="navbar-item" @click="$emit('navbar', 'other')">Other</a>
+        <a class="navbar-item" @click="$emit('save', '')">Save</a>
+        <a class="navbar-item" @click="$emit('load', '')">Load</a>
+        <p id="fps" class="navbar-item" v-bind:style="{color:fpscolor}"></p>
       </div>
     </div>
   </nav>

@@ -3,21 +3,17 @@
 
 
 
-let config = {
-	blurStrength: undefined,
-	errodeDilateStrength: undefined,
-	size: undefined,
-	ws: undefined,
-	isTracking: false
-};
+let config = { };
 let hsv = undefined;
 let high = undefined;
 let low = undefined;
+let ws = undefined;
 
-
+let workerFrames = [];
 
 
 function startTracking() {
+	
 	let fpsCounter = 0;
 	//let cv = window.cv;
 	console.log("start tracking");
@@ -26,6 +22,7 @@ function startTracking() {
 	let canvasOutput = document.querySelector("#canvasOutput");
 	webcam.play();
 	hsv = new cv.Mat(webcam.height, webcam.width, cv.CV_8UC3);
+	
 
 	let ksize = new cv.Size(config.blurStrength, config.blurStrength);
 	let M = cv.Mat.ones(
@@ -46,12 +43,16 @@ function startTracking() {
 
 	// take first frame of the video
 	let frame = new cv.Mat(webcam.height, webcam.width, cv.CV_8UC4);
-	cap.read(frame);
+	//let w = new Worker("./framereader.js");
+	//w.onmessage = "message from worker!";
+	//w.postMessage(frame);
+	//cap.read(frame);
 	let dst = new cv.Mat();
 
 	let contours = new cv.MatVector();
 	let hierarchy = new cv.Mat();
 	updateHsvRanges();
+	let start = Date.now();
 
 	function processVideo() {
 		try {
@@ -69,19 +70,19 @@ function startTracking() {
 			}
 			let begin = Date.now();
 
-			let start = Date.now();
 
 			//console.log("reading frame");
 			cap.read(frame);
+			
 			//console.log("reading next frame");
 			//cv.resize(frame, small, dsize, 0, 0, cv.INTER_NEAREST);
-			if (config.useBlur) {
+			if (config.blurStrength > 0) {
 				cv.blur(frame, frame, ksize, anchor, cv.BORDER_DEFAULT);
 			}
 
 			cv.cvtColor(frame, hsv, cv.COLOR_RGB2HSV);
 			cv.inRange(hsv, low, high, dst);
-			if (config.erode) {
+			if (config.erodeDilateStrength > 0) {
 				cv.erode(
 					dst,
 					dst,
@@ -92,7 +93,7 @@ function startTracking() {
 					cv.morphologyDefaultBorderValue()
 				);
 			}
-			if (config.dilate) {
+			if (config.erodeDilateStrength > 0) {
 				cv.dilate(
 					dst,
 					dst,
@@ -176,24 +177,25 @@ function startTracking() {
 				var screenSize = (w + h) / 2;
 				var radius = rect.width + rect.height;
 				//console.log("distance: "+distance);
-				var x = -xpercent * config.movingsensitivity;
-				var y = -ypercent * config.movingsensitivity + config.yoffset;
+				var x = -xpercent * config.sensitivity.x + config.offset.x;
+				var y = -ypercent * config.sensitivity.y + config.offset.y;
 				//var z = config.zsensitivity * distance + config.zoffset;
-				var z = config.zsensitivity * (radius / screenSize) + config.zoffset;
+				var z = config.sensitivity.z * (radius / screenSize) + config.offset.z;
 				var msg = config.id + "," + x + "," + y + "," + z;
-				console.log(msg);
+				//console.log("position: " + msg);
 				try {
-					config.ws.send(msg);
+					ws.send(msg);
 				} catch (e) {
 					if (config.debugMode) {
 						config.error = e;
+						console.log("error: "+e);
 					}
 				}
 			}
 
 			//console.log("drawing?");
 			//cv.imshow('trackingCheck', small);
-			if (config.showVideos) {
+			if (config.showTracker) {
 				//console.log("drawing");
 				cv.imshow("canvasOutput", dst);
 			}
@@ -204,11 +206,12 @@ function startTracking() {
 			fpsCounter += 1;
 			// only get fps once
 			if (fpsCounter == 300) {
-				var passed = Date.now() - start;
+				let now = Date.now();
+				var passed = now - start;
 				var seconds = passed / 1000;
 				//fps.innerText = processedFrames / seconds;
 				config.fpscounter = fpsCounter / seconds;
-				fpsDisplay.innerHTML = fpsCounter / seconds;
+				fpsDisplay.innerHTML = parseInt(fpsCounter / seconds)+ " fps";
 				fpsCounter = 0;
 
 
@@ -218,10 +221,10 @@ function startTracking() {
 			setTimeout(processVideo, delay);
 		} catch (err) {
 			//console.log(err);
-			//if (config.debugMode) {
+			if (config.debugMode) {
 				console.log(err);
 				config.error = err;
-			//}
+			}
 			//setTimeout(processVideo, 0.1);
 		}
 	}
@@ -311,6 +314,7 @@ var Module = {
 function loadConfig() {
 	var configJson = localStorage.tempConfig;
 	config = JSON.parse(configJson);
+	ws = new WebSocket(config.wsaddress);
 	//startTracking();
 }
 
@@ -319,5 +323,5 @@ document.querySelector("#trackerbutton").addEventListener("click", () => {
 	setTimeout(() => {
 		loadConfig();
 		startTracking();
-	}, 1000);
+	},200);
 });

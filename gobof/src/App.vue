@@ -3,7 +3,7 @@
     <section class="section">
       <div class="container">
         <pageloader></pageloader>
-        <navbar @navbar=" v => selectedMenu = v"></navbar>
+        <navbar @navbar=" v => selectedMenu = v" @save="save()" @load="load()"></navbar>
         <br>
         <br>
         <div v-if="selectedMenu=='home'">
@@ -16,50 +16,51 @@
           :visible="selectedMenu=='webcam' || selectedMenu=='tracker'"
           :isTracking="isTracking"
           :size="config.size"
+          :config="config"
           @toggleTracking="toggleTracking()"
         ></webcam-and-tracker>
         <performance
           v-if="selectedMenu=='performance'"
-          :size="config.size"
-          :fps="config.fps"
-          :blurStrength="config.blurStrength"
-          :erodeDilateStrength="config.erodeDilateStrength"
+          :config="config"
           @sizeChange="v => config.size = parseInt(v)"
           @fpsChange="v => config.fps = parseInt(v)"
-          @blurStrengthChange="v => config.blurStrength = v"
-          @erodeDilateStrengthChange="v => config.erodeDilateStrength = v"
+          @blurStrengthChange="v => config.blurStrength = parseInt(v)"
+          @erodeDilateStrengthChange="v => config.erodeDilateStrength = parseInt(v)"
+          @showTracker="v => config.showTracker = v"
+          @showWebcam="v => config.showWebcam = v"
         ></performance>
-        <connection :address="wsaddress" v-if="selectedMenu=='connection'"></connection>
+        <connection :address="config.wsaddress" v-if="selectedMenu=='connection'" @input="v=> config.wsaddress=v"></connection>
         <div v-if="error!=''">
           <error></error>
         </div>
-        <config v-if="selectedMenu=='other'"></config>
+        <config v-if="selectedMenu=='other'" :debugMode="config.debugMode" @debugModeChange="v => config.debugMode = v"></config>
         <color
           :hsv="config.color"
           v-if="selectedMenu=='color'"
           :sensitivity="config.colorSensitivity"
           @picker="v => config.color = v.hsv"
-          @h-change="v =>config.color.h = v"
-          @s-change="v =>config.color.s = v"
-          @v-change="v =>config.color.v = v"
-          @sensitivity-h-change="v =>config.colorSensitivity.h = v"
-          @sensitivity-s-change="v =>config.colorSensitivity.s = v"
-          @sensitivity-v-change="v =>config.colorSensitivity.v = v"
+          @h-change="v =>config.color.h = parseFloat(v)"
+          @s-change="v =>config.color.s = parseFloat(v)"
+          @v-change="v =>config.color.v = parseFloat(v)"
+          @sensitivity-h-change="v =>config.colorSensitivity.h = parseFloat(v)"
+          @sensitivity-s-change="v =>config.colorSensitivity.s = parseFloat(v)"
+          @sensitivity-v-change="v =>config.colorSensitivity.v = parseFloat(v)"
         ></color>
         <sensitivity
           v-if="selectedMenu=='sensitivity'"
           :sensitivity="config.sensitivity"
-          @x-change="v => config.sensitivity.x = v"
-          @y-change="v => config.sensitivity.y = v"
-          @z-change="v => config.sensitivity.z = v"
+          @x-change="v => config.sensitivity.x = parseFloat(v)"
+          @y-change="v => config.sensitivity.y = parseFloat(v)"
+          @z-change="v => config.sensitivity.z = parseFloat(v)"
         ></sensitivity>
         <offset
           v-if="selectedMenu=='offset'"
           :offset="config.offset"
-          @x-change="v => config.offset.x = v"
-          @y-change="v => config.offset.y = v"
-          @z-change="v => config.offset.z = v"
+          @x-change="v => config.offset.x = parseFloat(v)"
+          @y-change="v => config.offset.y = parseFloat(v)"
+          @z-change="v => config.offset.z = parseFloat(v)"
         ></offset>
+        <error v-if="error!=''" :error="error"></error>
       </div>
     </section>
   </div>
@@ -92,6 +93,9 @@ let defaultConfig = {
   wsaddress: "ws://localhost:8765/",
 
   colorSensitivity: { h: 0.1, s: 0.4, v: 0.4 },
+  showTracker: true,
+  showWebcam: true,
+  debugMode: true,
 
   showTrackerRect: true,
 
@@ -99,18 +103,11 @@ let defaultConfig = {
   sensitivity: { x: 15, y: 15, z: 15 },
   offset: { x: 0, y: 0, z: 0 },
   targetwidth: 5,
-  fps: 72,
+  fps: 62,
   color: { h: 80, s: 0.65, v: 0.96 },
-  webcamOn: false,
 
-  size: 200,
-  blurStrength: 4,
-
-  webcamrealheight: 100,
-  webcamrealwidth: 100,
-  trackerscale: 1,
-
-  showVideos: true,
+  size: 400,
+  blurStrength: 8,
   biggestContour: true
 };
 export default {
@@ -131,6 +128,12 @@ export default {
   methods: {
     onWasmLoaded() {
       this.wasmloaded = true;
+    },
+    save() {
+      localStorage.myconfig = JSON.stringify(this.config);
+    },
+    load(){
+      this.config = JSON.parse(localStorage.myconfig);
     },
     toggleTracking() {
       this.isTracking = !this.isTracking;
@@ -174,8 +177,7 @@ export default {
         this.fpscolor = "red";
       }
     }
-  },
-
+  }
 };
 </script>
 

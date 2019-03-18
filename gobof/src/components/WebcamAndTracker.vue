@@ -1,8 +1,9 @@
 <template>
   <div :style="{display: visible ? 'block' : 'none'}" :size="size">
-    <webcam :size="size"></webcam>
+    <webcam :size="size" :style="{display: config.showWebcam ? 'block' : 'none'}"></webcam>
     <br>
-    <tracker :size="size" :isTracking="isTracking" @toggleTracking="$emit('toggleTracking')"></tracker>
+    <tracker :size="size" :isTracking="isTracking" :config="config"
+    @toggleTracking="$emit('toggleTracking')"></tracker>
   </div>
 </template>
 <script>
@@ -13,7 +14,7 @@ export default {
   data: () => {
     return {};
   },
-  props: ["isTracking", "visible", "size"],
+  props: ["isTracking", "visible", "size", "config"],
   components: {
     webcam: Webcam,
     tracker: Tracker

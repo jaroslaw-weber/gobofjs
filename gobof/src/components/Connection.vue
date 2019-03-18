@@ -3,7 +3,7 @@
     <div class="columns">
       <div class="column">
         <div>
-          <input class="input" :value="address" type="text" @input="wsupdate">
+          <input class="input" :value="address" type="text" @input="$emit('input', $event.target.value)">
         </div>
         <br>
         <div>

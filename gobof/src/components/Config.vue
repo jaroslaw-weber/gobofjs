@@ -37,7 +37,8 @@
     <div class="field">
       <label class="label">debug mode</label>
       <p class="help">warning! this may cause worse performance</p>
-      <input class="checkbox" type="checkbox" v-model="debugMode">
+      <input class="checkbox" type="checkbox" :checked="debugMode" 
+          @input="$emit('debugModeChange', $event.target.checked)">
     </div>
   </div>
 </template>
