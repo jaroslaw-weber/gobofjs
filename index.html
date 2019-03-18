@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css?family=Comfortaa" rel=stylesheet><title>Gobof - 6dof tracking in browser</title><style>.slider {
+      width: calc(100% - (5.2rem)) !important;
+    }
+
+    output {
+      width: 4rem !important;
+    }
+
+    .rounded-corners {
+      border-radius: 6px;
+    }
+
+    .is-invisible {
+      display: none;
+    }</style><link href=/css/app.bf053435.css rel=preload as=style><link href=/css/chunk-vendors.e349f7a2.css rel=preload as=style><link href=/js/app.48ef2e19.js rel=preload as=script><link href=/js/chunk-vendors.21d9926a.js rel=preload as=script><link href=/css/chunk-vendors.e349f7a2.css rel=stylesheet><link href=/css/app.bf053435.css rel=stylesheet></head><body><noscript><strong>We're sorry but gobof doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id=app></div><script src=/js/chunk-vendors.21d9926a.js></script><script src=/js/app.48ef2e19.js></script></body><script>var video = document.getElementById("webcam");
+
+  // Get access to the camera!
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // Not adding `{ audio: true }` since we only want video now
+    navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
+      //video.src = window.URL.createObjectURL(stream);
+      video.srcObject = stream;
+      video.play();
+    });
+  }</script><script>var Module = {
+    wasmBinaryFile: 'https://jaroslaw-weber.github.io/gobofjs/opencv/opencv_js.wasm',
+    _main: function () { opencvIsReady(); }
+  };</script><script src=opencv/opencv.js></script><script src=./tracker.js></script></html>
