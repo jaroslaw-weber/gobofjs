@@ -26,7 +26,7 @@
           class="slider has-output"
           step="1"
           min="0"
-          max="255"
+          max="360"
           type="range"
           :value="hsv.h"
           @input="$emit('h-change', $event.target.value)"
