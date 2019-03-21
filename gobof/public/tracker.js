@@ -264,9 +264,10 @@ function getHsvSettings() {
 //todo: same code in color.vue, refactor
 function lowh() {
 	var x = config.color.h;
-	var r = x - 255 * config.colorSensitivity.h;
+	var r = x - 360 * config.colorSensitivity.h;
 	if (r < 0) return 0;
-	return parseInt(r);
+	//opencv max hue is 180, not 360 so need to divide in half
+	return parseInt(r/2);
 }
 function lows() {
 	var x = config.color.s;
@@ -282,9 +283,9 @@ function lowv() {
 }
 function highh() {
 	var x = config.color.h;
-	var r = x + 255 * config.colorSensitivity.h;
-	if (r > 255) return 255;
-	return parseInt(r);
+	var r = x + 360 * config.colorSensitivity.h;
+	if (r > 360) return 360/2;
+	return parseInt(r/2);
 }
 function highs() {
 	var x = config.color.s;
