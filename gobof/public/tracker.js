@@ -38,6 +38,10 @@ function startTracking() {
 	//let video = document.getElementById('webcam');
 	let cap = new cv.VideoCapture(webcam);
 	let fpsDisplay= document.querySelector("#fps");
+	let connectionStatus = document.querySelector("#connection");
+	let ws = new WebSocket(config.wsaddress);
+	ws.onopen = () => connectionStatus.innerHTML = "connected!";
+	ws.onclose = () => connectionStatus.innerHTML = "not connected :(";
 
 	//console.log("capturing first frame!");
 

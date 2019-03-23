@@ -86,10 +86,7 @@ let defaultConfig = {
   id: 1,
   debugMode: false,
 
-  useBlur: false,
-  useErode: true,
-  useDilate: false,
-  erodeDilateStrength: 3,
+  erodeDilateStrength: 0,
   wsaddress: "ws://localhost:8765/",
 
   colorSensitivity: { h: 0.1, s: 0.4, v: 0.4 },
@@ -104,10 +101,10 @@ let defaultConfig = {
   offset: { x: 0, y: 0, z: 0 },
   targetwidth: 5,
   fps: 62,
-  color: { h: 80, s: 0.65, v: 0.96 },
+  color: { h: 80, s: 0.6, v: 0.7 },
 
   size: 400,
-  blurStrength: 8,
+  blurStrength: 2,
   biggestContour: true
 };
 export default {

@@ -32,7 +32,8 @@
         <a class="navbar-item" @click="$emit('navbar', 'other')">Other</a>
         <a class="navbar-item" @click="$emit('save', '')">Save</a>
         <a class="navbar-item" @click="$emit('load', '')">Load</a>
-        <p id="fps" class="navbar-item" v-bind:style="{color:fpscolor}"></p>
+        <p id="fps" class="navbar-item"></p>
+        <p id="connection" class="navbar-item">not connected</p>
       </div>
     </div>
   </nav>
