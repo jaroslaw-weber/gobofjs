@@ -42,6 +42,7 @@ function startTracking() {
 	let ws = new WebSocket(config.wsaddress);
 	ws.onopen = () => connectionStatus.innerHTML = "connected!";
 	ws.onclose = () => connectionStatus.innerHTML = "not connected :(";
+	
 
 	//console.log("capturing first frame!");
 
